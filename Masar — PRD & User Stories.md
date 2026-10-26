@@ -1,9 +1,6 @@
 # Masar — PRD & User Stories
-
 **Version:** 0.2 — Revised MVP Scope  
 **Status:** Proposed baseline for team approval
-
----
 
 ## 1. Product Definition
 
@@ -17,9 +14,7 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - **Mentor:** يتابع الطالب أسبوعيًا ويراجع تقدمه.
 - **Admin:** يدير المسار والموارد وحسابات الطلاب والـMentors.
 
-> **ملاحظة:** الشركات جزء من الرؤية المستقبلية، وليست مستخدمًا أساسيًا في الـMVP.
-
----
+الشركات جزء من الرؤية المستقبلية، وليست مستخدمًا أساسيًا في الـMVP.
 
 ## 2. MVP Scope
 
@@ -46,11 +41,9 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - Marketplace مفتوح للـMentors.
 - اجتماعات فيديو داخل المنصة.
 - نظام توظيف أو لوحة للشركات.
-- نظام مدفوعات وااشتراكات حقيقي.
+- نظام مدفوعات واشتراكات حقيقي.
 - ضمان الجاهزية للتوظيف أو ضمان الحصول على وظيفة.
 - شهادات احترافية أو اعتماد رسمي للمهارات.
-
----
 
 ## 3. Main User Flow
 
@@ -65,89 +58,77 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 9. الـMentor يراجع التقدم أسبوعيًا ويقدم Feedback.
 10. الطالب يرى المهارات التي عمل عليها، والمشاريع التي أنجزها، والخطوات التالية.
 
----
-
 ## 4. Functional Requirements
 
 | ID | Requirement | Priority |
-| :--- | :--- | :--- |
-| **FR-01** | تسجيل الدخول وإنشاء حساب | Must |
-| **FR-02** | رفع CV واستخراج البيانات | Must |
-| **FR-03** | إدخال البيانات يدويًا دون CV | Must |
-| **FR-04** | اختيار المسار المتاح | Must |
-| **FR-05** | تقييم المهارات وتحديد الفجوات | Must |
-| **FR-06** | توليد خطة من الموارد المعتمدة | Must |
-| **FR-07** | متابعة المهام والتقدم | Must |
-| **FR-08** | تعيين Mentor للطالب | Must |
-| **FR-09** | تسجيل المتابعة الأسبوعية | Must |
-| **FR-10** | تسليم المشاريع واستقبال Feedback | Must |
-| **FR-11** | عرض Dashboard للتقدم | Must |
-| **FR-12** | مشاركة Portfolio مع الشركات | Later |
-| **FR-13** | نظام مدفوعات | Later |
-
----
+|---|---|---|
+| FR-01 | تسجيل الدخول وإنشاء حساب | Must |
+| FR-02 | رفع CV واستخراج البيانات | Must |
+| FR-03 | إدخال البيانات يدويًا دون CV | Must |
+| FR-04 | اختيار المسار المتاح | Must |
+| FR-05 | تقييم المهارات وتحديد الفجوات | Must |
+| FR-06 | توليد خطة من الموارد المعتمدة | Must |
+| FR-07 | متابعة المهام والتقدم | Must |
+| FR-08 | تعيين Mentor للطالب | Must |
+| FR-09 | تسجيل المتابعة الأسبوعية | Must |
+| FR-10 | تسليم المشاريع واستقبال Feedback | Must |
+| FR-11 | عرض Dashboard للتقدم | Must |
+| FR-12 | مشاركة Portfolio مع الشركات | Later |
+| FR-13 | نظام مدفوعات | Later |
 
 ## 5. User Stories & Acceptance Criteria
 
 ### Epic A — Student Onboarding
 
-#### US-01: Upload CV
+**US-01: Upload CV**
 
-> **As a** student, **I want to** upload my CV **so that** Masar can identify my existing skills and experience.
+As a student, I want to upload my CV so that Masar can identify my existing skills and experience.
 
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يقبل النظام صيغة PDF ضمن حدود الحجم المحددة.
 - تظهر البيانات المستخرجة للطالب قبل حفظها.
 - يستطيع الطالب تعديل البيانات أو حذف المعلومات غير الصحيحة.
 - فشل التحليل لا يمنع الطالب من إدخال البيانات يدويًا.
 
----
+**US-02: Start from Scratch**
 
-#### US-02: Start from Scratch
+As a student, I want to enter my information manually so that I can use Masar without having a CV.
 
-> **As a** student, **I want to** enter my information manually **so that** I can use Masar without having a CV.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع الطالب إدخال بياناته الأساسية.
 - يستطيع تحديد المهارات التي تعلمها ومصادر تعلمه ومشاريعه.
 - يستطيع إكمال الرحلة دون رفع ملف.
 - لا يعتبر النظام المهارات المعلنة ذاتيًا مهارات مثبتة تلقائيًا.
 
----
-
 ### Epic B — Skill Assessment
 
-#### US-03: Assess My Skills
+**US-03: Assess My Skills**
 
-> **As a** student, **I want to** assess my skills **so that** I understand my current level.
+As a student, I want to assess my skills so that I understand my current level.
 
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع الطالب إكمال تقييم مناسب للمسار.
 - تظهر نتيجة التقييم لكل مهارة تم اختبارها.
 - يتم توضيح المهارات التي لم يتم تقييمها.
 - لا يتم الادعاء بأن تقييمًا قصيرًا يثبت الكفاءة المهنية الكاملة.
 
----
+**US-04: Identify Skill Gaps**
 
-#### US-04: Identify Skill Gaps
+As a student, I want to know which skills I need to improve so that I can focus on relevant learning tasks.
 
-> **As a** student, **I want to** know which skills I need to improve **so that** I can focus on relevant learning tasks.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - تتم مقارنة نتائج الطالب بمتطلبات المسار المعتمد.
 - تظهر المهارات الناقصة أو التي تحتاج إلى تطوير.
 - ترتبط كل فجوة بمهام أو موارد مناسبة.
 - يمكن تتبع مصدر المتطلب الذي أدى إلى التوصية.
 
----
-
 ### Epic C — Learning Plan
 
-#### US-05: Receive a Learning Plan
+**US-05: Receive a Learning Plan**
 
-> **As a** student, **I want** a personalized learning plan **so that** I know what to learn and do next.
+As a student, I want a personalized learning plan so that I know what to learn and do next.
 
-**Acceptance Criteria:**
+Acceptance Criteria:
 - تحتوي الخطة على مهام مرتبة.
 - يتم اختيار الموارد من مكتبة معتمدة يديرها Admin.
 - ترتبط كل مهمة بمهارة محددة.
@@ -155,84 +136,70 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - لا يوصي النظام بموارد غير موجودة في المكتبة المعتمدة.
 - يستطيع الطالب معرفة المهمة التالية وحالة كل مهمة.
 
----
+**US-06: Track My Progress**
 
-#### US-06: Track My Progress
+As a student, I want to track my tasks so that I can monitor my progress.
 
-> **As a** student, **I want to** track my tasks **so that** I can monitor my progress.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع الطالب عرض المهام المعلقة والمكتملة.
 - يستطيع تحديث حالة المهمة.
 - لا يتم اعتماد مشروع كدليل على المهارة إلا بعد استيفاء معايير التقييم المعتمدة.
 - يتم تحديث Dashboard عند تسجيل التقدم.
 
----
-
 ### Epic D — Mentorship
 
-#### US-07: View My Mentor
+**US-07: View My Mentor**
 
-> **As a** student, **I want to** know who my mentor is and when my next session will take place.
+As a student, I want to know who my mentor is and when my next session will take place.
 
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يظهر اسم الـMentor المعيّن للطالب.
 - يستطيع الطالب معرفة موعد المتابعة القادمة.
 - يستطيع الاطلاع على ملاحظات المتابعات السابقة.
 - إذا لم يتم تعيين Mentor، تظهر حالة واضحة بدل عرض بيانات وهمية.
 
----
+**US-08: Conduct Weekly Follow-ups**
 
-#### US-08: Conduct Weekly Follow-ups
+As a mentor, I want to review my student's progress weekly so that I can guide the student and address blockers.
 
-> **As a** mentor, **I want to** review my student's progress weekly **so that** I can guide the student and address blockers.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع الـMentor عرض مهام الطالب ومشاريعه.
 - يستطيع تسجيل ملخص المتابعة الأسبوعية.
 - يستطيع تسجيل الصعوبات والخطوات التالية.
 - يستطيع الطالب الاطلاع على الملاحظات الخاصة به.
 - يتم حفظ تاريخ المتابعة.
 
----
+**US-09: Review Projects**
 
-#### US-09: Review Projects
+As a mentor, I want to review submitted projects so that I can provide actionable feedback.
 
-> **As a** mentor, **I want to** review submitted projects **so that** I can provide actionable feedback.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع الطالب تسليم رابط مشروع أو ملف مناسب.
 - يستطيع الـMentor تسجيل Feedback مرتبط بالمشروع.
 - يستطيع تحديد معايير التقييم التي تم استيفاؤها أو التي تحتاج إلى تحسين.
 - يستطيع الطالب مراجعة الملاحظات وإعادة التسليم عند الحاجة.
 
----
-
 ### Epic E — Admin & Resources
 
-#### US-10: Manage Learning Resources
+**US-10: Manage Learning Resources**
 
-> **As an** admin, **I want to** manage the approved learning resources and projects **so that** students receive relevant and reliable recommendations.
+As an admin, I want to manage the approved learning resources and projects so that students receive relevant and reliable recommendations.
 
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع Admin إضافة وتعديل وحذف الموارد.
 - لكل مورد عنوان ورابط ووصف والمهارات المرتبطة به.
 - يمكن ربط المورد بمهمة أو مرحلة في المسار.
 - يتم استبعاد الموارد غير المتاحة أو التي تم إلغاء اعتمادها من التوصيات الجديدة.
 
----
+**US-11: Assign Mentors**
 
-#### US-11: Assign Mentors
+As an admin, I want to assign a mentor to each student so that the student receives human guidance.
 
-> **As an** admin, **I want to** assign a mentor to each student **so that** the student receives human guidance.
-
-**Acceptance Criteria:**
+Acceptance Criteria:
 - يستطيع Admin تعيين Mentor للطالب.
 - يستطيع عرض الطلاب المرتبطين بكل Mentor.
 - يمكن تحديث التعيين عند الحاجة.
 - لا تظهر بيانات الطلاب إلا للمستخدمين المصرح لهم.
-
----
 
 ## 6. Non-Functional Requirements
 
@@ -242,8 +209,6 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - **Reliability:** التعامل مع أخطاء رفع الملفات وتحليلها وحفظ البيانات.
 - **Usability:** واجهة بسيطة تعرض الخطوة التالية بوضوح.
 - **Maintainability:** إدارة الموارد والمشاريع من خلال بيانات قابلة للتحديث.
-
----
 
 ## 7. Definition of Done
 
@@ -258,9 +223,7 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - رؤية تقدم المهام في Dashboard.
 - الحصول على متابعة وFeedback مسجلين من Mentor بشري.
 
-> **شرط إضافي:** يجب أن تعمل هذه الرحلة على بيانات مترابطة، وأن يتم توضيح أي خطوات يدوية تتم خلف الكواليس.
-
----
+يجب أن تعمل هذه الرحلة على بيانات مترابطة، وأن يتم توضيح أي خطوات يدوية تتم خلف الكواليس.
 
 ## 8. Success Metrics
 
@@ -271,8 +234,6 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - عدد المتابعات الأسبوعية التي تمت بالفعل.
 - نسبة الطلاب الذين يعودون لاستكمال الخطة.
 - تقييم الطلاب لفائدة الـMentor والخطة.
-
----
 
 ## 9. Open Decisions
 
@@ -287,8 +248,6 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 7. **الـCV:** ما الحد الأقصى لحجم الملف، وما البيانات التي سنحتفظ بها؟
 8. **معيار إكمال المشروع:** من يقرر نجاح المشروع، وما معايير التقييم؟
 
----
-
 ## 10. Proposed Implementation Assumptions
 
 إلى أن يحسم الفريق القرارات السابقة، نقترح الافتراضات التالية:
@@ -301,7 +260,4 @@ Masar منصة لتأهيل طلاب الجامعات لمسار مهني محد
 - مراجعة المشاريع تتم بواسطة Mentor وفق معايير واضحة.
 - بيانات الشركات والتوظيف خارج نطاق الـMVP.
 
----
-
-> **Final Product Boundary:**  
-> Masar في نسختها الأولى هي منصة لإدارة رحلة تعلم مهنية موجهة ومصحوبة بمتابعة بشرية، وليست منصة كورسات أو نظام توظيف متكاملًا.
+**Final Product Boundary:** Masar في نسختها الأولى هي منصة لإدارة رحلة تعلم مهنية موجهة ومصحوبة بمتابعة بشرية، وليست منصة كورسات أو نظام توظيف متكاملًا.
