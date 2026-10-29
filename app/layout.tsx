@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Compass, LayoutDashboard, Map, ArrowUpRight } from "lucide-react";
+import { Suspense } from "react";
+import { Compass } from "lucide-react";
 import "./globals.css";
+
 import { LearningProgressProvider } from "@/components/learning-progress-provider";
+import SiteHeader from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: {
@@ -13,11 +16,6 @@ export const metadata: Metadata = {
     "A structured Full-Stack learning roadmap for university students in Egypt.",
 };
 
-const navigation = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/roadmap", label: "Roadmap", icon: Map },
-];
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,40 +24,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="site-header">
-          <div className="nav-container">
-            <Link href="/" className="brand" aria-label="Masarak home">
-              <span className="brand-mark">
-                <Compass size={22} />
-              </span>
-              <span>
-                Masarak<span className="brand-period">.</span>
-              </span>
-            </Link>
-
-            <nav className="main-nav" aria-label="Main navigation">
-              {navigation.map(({ href, label, icon: Icon }) => (
-                <Link key={href} href={href} className="nav-link">
-                  <Icon size={17} />
-                  {label}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="header-auth-actions">
-              <Link href="/login" className="button-secondary">
-                Sign in
-              </Link>
-
-              <Link href="/signup" className="button-primary">
-                Create account
-              </Link>
-            </div>
-          </div>
-        </header>
+        <Suspense
+          fallback={
+            <header className="site-header" aria-label="Loading navigation" />
+          }
+        >
+          <SiteHeader />
+        </Suspense>
 
         <main>
-          <LearningProgressProvider>{children}</LearningProgressProvider>
+          <Suspense
+            fallback={
+              <div className="mx-auto max-w-3xl px-6 py-12">
+                Loading page...
+              </div>
+            }
+          >
+            <LearningProgressProvider>{children}</LearningProgressProvider>
+          </Suspense>
         </main>
 
         <footer className="site-footer">
@@ -72,6 +54,7 @@ export default function RootLayout({
                 Masarak<span className="brand-period">.</span>
               </span>
             </Link>
+
             <p>A clearer path from learning to building.</p>
             <span>Built for the next generation of developers.</span>
           </div>
