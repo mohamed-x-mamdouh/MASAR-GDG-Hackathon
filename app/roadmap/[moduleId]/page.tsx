@@ -11,14 +11,20 @@ import {
   Clock3,
   ExternalLink,
   ListChecks,
-  LockKeyhole,
   Target,
 } from "lucide-react";
+
 import {
   curriculum,
   getModuleById,
-  getModuleStatus,
 } from "@/lib/curriculum";
+
+import {
+  ModuleProgressBadge,
+  ModuleQuizAction,
+} from "@/components/module-progress";
+
+import ModuleContentGate from "@/components/module-content-gate";
 
 type Props = {
   params: Promise<{ moduleId: string }>;
@@ -49,7 +55,6 @@ export default async function ModulePage({ params }: Props) {
     notFound();
   }
 
-  const status = getModuleStatus(roadmapModule.id);
   const previousModule = curriculum[roadmapModule.number - 2];
   const nextModule = curriculum[roadmapModule.number];
 
@@ -68,21 +73,7 @@ export default async function ModulePage({ params }: Props) {
       </div>
 
       <section className="module-detail-header">
-        <span className={`status-pill ${status}`}>
-          {status === "completed" ? (
-            <CheckCircle2 size={14} />
-          ) : status === "current" ? (
-            <Target size={14} />
-          ) : (
-            <LockKeyhole size={14} />
-          )}
-
-          {status === "completed"
-            ? "Completed in demo"
-            : status === "current"
-              ? "Current stage in demo"
-              : "Locked in demo"}
-        </span>
+        <ModuleProgressBadge moduleId={roadmapModule.id} />
 
         <h1>
           <span className="text-accent">
@@ -144,57 +135,59 @@ export default async function ModulePage({ params }: Props) {
             </ul>
           </section>
 
-          <section className="panel detail-section">
-            <h2>
-              <BookOpen
-                size={19}
-                style={{ display: "inline", verticalAlign: "middle" }}
-              />{" "}
-              Learning resources
-            </h2>
+          <ModuleContentGate moduleId={roadmapModule.id}>
+            <section className="panel detail-section">
+              <h2>
+                <BookOpen
+                  size={19}
+                  style={{ display: "inline", verticalAlign: "middle" }}
+                />{" "}
+                Learning resources
+              </h2>
 
-            {roadmapModule.resources.map((resource) => (
-              <a
-                className="resource-card"
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                key={resource.title}
-              >
-                <div className="step-icon">
-                  <BookOpen size={19} />
-                </div>
+              {roadmapModule.resources.map((resource) => (
+                <a
+                  className="resource-card"
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  key={resource.title}
+                >
+                  <div className="step-icon">
+                    <BookOpen size={19} />
+                  </div>
 
-                <div style={{ flex: 1 }}>
-                  <h3>{resource.title}</h3>
-                  <p>
-                    {resource.provider} · {resource.type}
-                  </p>
-                </div>
+                  <div style={{ flex: 1 }}>
+                    <h3>{resource.title}</h3>
+                    <p>
+                      {resource.provider} · {resource.type}
+                    </p>
+                  </div>
 
-                <ExternalLink size={16} color="#858ba0" />
-              </a>
-            ))}
-          </section>
-
-          <section className="panel detail-section">
-            <h2>
-              <ListChecks
-                size={19}
-                style={{ display: "inline", verticalAlign: "middle" }}
-              />{" "}
-              Completion criteria
-            </h2>
-
-            <ul className="detail-list">
-              {roadmapModule.completionCriteria.map((criterion) => (
-                <li key={criterion}>
-                  <CircleCheck size={17} />
-                  <span>{criterion}</span>
-                </li>
+                  <ExternalLink size={16} color="#858ba0" />
+                </a>
               ))}
-            </ul>
-          </section>
+            </section>
+
+            <section className="panel detail-section">
+              <h2>
+                <ListChecks
+                  size={19}
+                  style={{ display: "inline", verticalAlign: "middle" }}
+                />{" "}
+                Completion criteria
+              </h2>
+
+              <ul className="detail-list">
+                {roadmapModule.completionCriteria.map((criterion) => (
+                  <li key={criterion}>
+                    <CircleCheck size={17} />
+                    <span>{criterion}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </ModuleContentGate>
         </div>
 
         <aside>
@@ -219,20 +212,27 @@ export default async function ModulePage({ params }: Props) {
             )}
           </section>
 
-          <section className="task-card detail-section">
-            <span className="eyebrow">
-              <ListChecks size={15} />
-              Practical task
-            </span>
+          <ModuleContentGate
+            moduleId={roadmapModule.id}
+            showLockedMessage={false}
+          >
+            <ModuleQuizAction moduleId={roadmapModule.id} />
 
-            <h3>Put your knowledge to work</h3>
-            <p>{roadmapModule.task}</p>
+            <section className="task-card detail-section">
+              <span className="eyebrow">
+                <ListChecks size={15} />
+                Practical task
+              </span>
 
-            <p className="stat-note">
-              Submission and mentor review will be enabled when the backend
-              workflow is implemented.
-            </p>
-          </section>
+              <h3>Put your knowledge to work</h3>
+              <p>{roadmapModule.task}</p>
+
+              <p className="stat-note">
+                Submission and mentor review will be enabled when the backend
+                workflow is implemented.
+              </p>
+            </section>
+          </ModuleContentGate>
 
           <section className="panel detail-section">
             <h2>Skills covered</h2>

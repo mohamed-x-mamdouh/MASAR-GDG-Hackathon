@@ -325,18 +325,10 @@ export const curriculum: CurriculumModule[] = [
   },
 ];
 
+// Initial sample progress for the demo. Real progress is managed separately
+// by the learning-progress provider and updated when students pass quizzes.
 export const demoCompletedModuleIds = ["web-fundamentals", "html-css"];
 
-export const demoCurrentModuleId = "javascript";
-
-export function getModuleStatus(
-  id: string,
-): "completed" | "current" | "locked" {
-  if (demoCompletedModuleIds.includes(id)) return "completed";
-  if (id === demoCurrentModuleId) return "current";
-  return "locked";
-}
-
 export function getModuleById(id: string) {
-  return curriculum.find((module) => module.id === id);
+  return curriculum.find((curriculumModule) => curriculumModule.id === id);
 }

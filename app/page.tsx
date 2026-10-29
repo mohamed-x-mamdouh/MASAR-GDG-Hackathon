@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 import {
   ArrowRight,
@@ -58,17 +57,22 @@ export default function HomePage() {
             </h1>
 
             <p className="hero-copy">
-              A clearer path to becoming a Full-Stack Developer.
-              Know what to learn, why it matters, and what to do next —
-              one meaningful step at a time.
+              A clearer path to becoming a Full-Stack Developer. Know what to
+              learn, why it matters, and what to do next — one meaningful step
+              at a time.
             </p>
 
             <div className="hero-actions">
-              <Link href="/roadmap" className="button-primary">
-                Explore the roadmap <ArrowRight size={18} />
+              <Link href="/signup" className="button-primary">
+                Create account
               </Link>
-              <Link href="/dashboard" className="button-secondary">
-                View dashboard
+
+              <Link href="/login" className="button-secondary">
+                Sign in
+              </Link>
+
+              <Link href="/roadmap" className="button-secondary">
+                Explore roadmap
               </Link>
             </div>
 
@@ -133,9 +137,9 @@ export default function HomePage() {
           <span className="eyebrow">A better way to learn</span>
           <h2>Clarity is the first step to progress.</h2>
           <p>
-            The problem is not always a lack of resources. Sometimes it is
-            not knowing which resource matters, how topics connect, or how
-            to tell whether you are actually improving.
+            The problem is not always a lack of resources. Sometimes it is not
+            knowing which resource matters, how topics connect, or how to tell
+            whether you are actually improving.
           </p>
         </div>
 

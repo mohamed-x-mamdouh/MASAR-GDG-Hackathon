@@ -1,13 +1,13 @@
-
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass, LayoutDashboard, Map, ArrowUpRight } from "lucide-react";
 import "./globals.css";
+import { LearningProgressProvider } from "@/components/learning-progress-provider";
 
 export const metadata: Metadata = {
   title: {
-    default: "Masar — Your learning journey, made clear",
-    template: "%s | Masar",
+    default: "Masarak — Your learning journey, made clear",
+    template: "%s | Masarak",
   },
   description:
     "A structured Full-Stack learning roadmap for university students in Egypt.",
@@ -28,11 +28,13 @@ export default function RootLayout({
       <body>
         <header className="site-header">
           <div className="nav-container">
-            <Link href="/" className="brand" aria-label="Masar home">
+            <Link href="/" className="brand" aria-label="Masarak home">
               <span className="brand-mark">
                 <Compass size={22} />
               </span>
-              <span>masar<span className="brand-period">.</span></span>
+              <span>
+                Masarak<span className="brand-period">.</span>
+              </span>
             </Link>
 
             <nav className="main-nav" aria-label="Main navigation">
@@ -44,13 +46,21 @@ export default function RootLayout({
               ))}
             </nav>
 
-            <Link href="/roadmap" className="nav-cta">
-              Start learning <ArrowUpRight size={16} />
-            </Link>
+            <div className="header-auth-actions">
+              <Link href="/login" className="button-secondary">
+                Sign in
+              </Link>
+
+              <Link href="/signup" className="button-primary">
+                Create account
+              </Link>
+            </div>
           </div>
         </header>
 
-        <main>{children}</main>
+        <main>
+          <LearningProgressProvider>{children}</LearningProgressProvider>
+        </main>
 
         <footer className="site-footer">
           <div className="footer-inner">
@@ -58,7 +68,9 @@ export default function RootLayout({
               <span className="brand-mark">
                 <Compass size={19} />
               </span>
-              <span>masar<span className="brand-period">.</span></span>
+              <span>
+                Masarak<span className="brand-period">.</span>
+              </span>
             </Link>
             <p>A clearer path from learning to building.</p>
             <span>Built for the next generation of developers.</span>

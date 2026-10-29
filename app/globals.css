@@ -1,5 +1,5 @@
-
 @import "tailwindcss";
+@import "@heroui/styles";
 
 :root {
   --background: #f8f9fc;
@@ -919,5 +919,337 @@ a:focus-visible {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
+  }
+}
+.dashboard-progress {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.dashboard-progress [data-slot="track"] {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eaf2;
+}
+
+.dashboard-progress [data-slot="fill"] {
+  border-radius: 999px;
+  background: #5b4ce2;
+}
+
+
+/* Quiz experience */
+.quiz-page {
+  max-width: 980px;
+}
+
+.quiz-page > .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.quiz-header {
+  margin: 28px 0;
+}
+
+.quiz-header h1 {
+  margin: 10px 0;
+}
+
+.quiz-header > p {
+  max-width: 680px;
+  line-height: 1.7;
+}
+
+.quiz-questions {
+  display: grid;
+  gap: 20px;
+}
+
+.quiz-question-card {
+  padding: 24px;
+}
+
+.quiz-question-number {
+  margin-bottom: 12px;
+  color: #5b4ce2;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.quiz-question-card h2 {
+  margin: 0 0 20px;
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+.quiz-options {
+  display: grid;
+  gap: 10px;
+}
+
+.quiz-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #e2e5ed;
+  border-radius: 12px;
+  background: #fff;
+  color: #20283b;
+  text-align: left;
+  line-height: 1.55;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.quiz-option:hover {
+  border-color: #a8a0f5;
+  background: #faf9ff;
+}
+
+.quiz-option.is-selected {
+  border-color: #5b4ce2;
+  background: #f1efff;
+}
+
+.quiz-option-letter {
+  display: grid;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #d9dbea;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.quiz-validation {
+  color: #b42318;
+  font-size: 0.92rem;
+}
+
+.quiz-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.quiz-result {
+  margin-top: 24px;
+  padding: 28px;
+  gap: 16px;
+}
+
+.quiz-result > h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.quiz-result > p {
+  line-height: 1.7;
+}
+
+.quiz-review {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.quiz-review-item {
+  padding: 18px;
+  border: 1px solid #e2e5ed;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.quiz-review-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.quiz-review-heading h3 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.quiz-review-item > p {
+  margin-top: 12px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .quiz-question-card,
+  .quiz-result {
+    padding: 18px;
+  }
+
+  .quiz-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Authentication pages */
+.auth-page {
+  max-width: 680px;
+  min-height: 65vh;
+  padding-top: 40px;
+  padding-bottom: 64px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  margin: 32px auto;
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgb(20 25 45 / 5%);
+}
+
+.auth-card h1 {
+  margin: 12px 0;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+.auth-description {
+  margin-bottom: 28px;
+  color: #647087;
+  line-height: 1.7;
+}
+
+.auth-form {
+  display: grid;
+  gap: 20px;
+}
+
+.auth-field {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-field label {
+  color: #172033;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-card .auth-field input {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  color: #172033;
+  background: #ffffff;
+  border: 1px solid #d9dfeb;
+  border-radius: 10px;
+  outline: none;
+  font: inherit;
+}
+
+.auth-card .auth-field input:focus {
+  border-color: #6250ed;
+  box-shadow: 0 0 0 3px rgb(98 80 237 / 12%);
+}
+
+.auth-hint,
+.auth-switch {
+  color: #647087;
+  font-size: 14px;
+}
+
+.auth-submit {
+  width: 100%;
+  min-height: 46px;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.auth-message {
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.auth-error {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.auth-success {
+  color: #166534;
+  background: #f0fdf4;
+}
+
+.auth-switch {
+  margin-top: 22px;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: #5946e8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 520px) {
+  .auth-card {
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+}
+
+.header-auth-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .nav-container {
+    gap: 12px;
+  }
+
+  .header-auth-actions {
+    gap: 6px;
+  }
+
+  .header-auth-actions a {
+    padding: 10px 12px;
+    font-size: 13px;
+    white-space: nowrap;
   }
 }
