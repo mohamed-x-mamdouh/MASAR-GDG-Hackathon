@@ -9,23 +9,31 @@ import {
   useState,
   type ReactNode,
 } from "react";
+
 import { curriculum } from "@/lib/curriculum";
 import {
-  defaultLearningProgress,
+  emptyLearningProgress,
   getProgressStatus,
-  normalizeLearningProgress,
   PROGRESS_STORAGE_KEY,
   type LearningProgress,
+  type QuizSubmissionResult,
 } from "@/lib/learning-progress";
+
+import {
+  getLearningProgressAction,
+  submitModuleQuizAction,
+} from "@/app/learning-progress/actions";
+
+import { createClient } from "@/lib/supabase/client";
 
 type LearningProgressContextValue = LearningProgress & {
   hydrated: boolean;
+  loadError: string | null;
   getStatus: (moduleId: string) => "completed" | "current" | "locked";
   recordQuizResult: (
     moduleId: string,
-    score: number,
-    passPercentage: number,
-  ) => void;
+    answers: Record<string, string>,
+  ) => Promise<QuizSubmissionResult>;
 };
 
 const LearningProgressContext =
@@ -37,88 +45,94 @@ export function LearningProgressProvider({
   children: ReactNode;
 }) {
   const [progress, setProgress] = useState<LearningProgress>(
-    defaultLearningProgress,
+    emptyLearningProgress,
   );
+
   const [hydrated, setHydrated] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(PROGRESS_STORAGE_KEY);
+    let active = true;
+    let requestId = 0;
 
-      if (stored) {
-        const normalized = normalizeLearningProgress(JSON.parse(stored));
+    const refreshProgress = async () => {
+      const currentRequest = ++requestId;
 
-        if (normalized) {
-          void Promise.resolve().then(() => {
-            setProgress(normalized);
-          });
+      try {
+        const result = await getLearningProgressAction();
+
+        if (!active || currentRequest !== requestId) {
+          return;
+        }
+
+        if (!result.ok) {
+          setProgress(emptyLearningProgress);
+          setLoadError(result.error);
+        } else {
+          setProgress(result.progress);
+          setLoadError(null);
+        }
+      } catch {
+        if (!active || currentRequest !== requestId) {
+          return;
+        }
+
+        setProgress(emptyLearningProgress);
+        setLoadError(
+          "Couldn't load saved progress. Please refresh the page.",
+        );
+      } finally {
+        if (active && currentRequest === requestId) {
+          setHydrated(true);
         }
       }
+    };
+
+    // Remove the old demo progress saved by earlier versions.
+    try {
+      window.localStorage.removeItem(PROGRESS_STORAGE_KEY);
     } catch {
-      // Keep the default demo state when storage is unavailable or invalid.
-    } finally {
-      setHydrated(true);
+      // Local storage may be unavailable.
     }
+
+    void refreshProgress();
+
+    const supabase = createClient();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        // Never show a previous account's progress while switching users.
+        setProgress(emptyLearningProgress);
+        setLoadError(null);
+        setHydrated(false);
+
+        queueMicrotask(() => {
+          void refreshProgress();
+        });
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  useEffect(() => {
-    if (!hydrated) {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(
-        PROGRESS_STORAGE_KEY,
-        JSON.stringify(progress),
-      );
-    } catch {
-      // The app remains usable if local storage is unavailable.
-    }
-  }, [progress, hydrated]);
-
   const recordQuizResult = useCallback(
-    (moduleId: string, score: number, passPercentage: number) => {
-      const boundedScore = Math.min(100, Math.max(0, Math.round(score)));
-      const boundedPassPercentage = Math.min(100, Math.max(0, passPercentage));
+    async (
+      moduleId: string,
+      answers: Record<string, string>,
+    ): Promise<QuizSubmissionResult> => {
+      const result = await submitModuleQuizAction(moduleId, answers);
 
-      setProgress((previous) => {
-        const moduleExists = curriculum.some((item) => item.id === moduleId);
+      if (result.ok) {
+        setProgress(result.progress);
+        setLoadError(null);
+      }
 
-        if (!moduleExists) {
-          return previous;
-        }
-
-        const passed = boundedScore >= boundedPassPercentage;
-
-        const completedModuleIds = passed
-          ? [...new Set([...previous.completedModuleIds, moduleId])]
-          : previous.completedModuleIds;
-
-        // Keep the original curriculum order in saved progress.
-        const orderedCompletedIds = curriculum
-          .filter((item) => completedModuleIds.includes(item.id))
-          .map((item) => item.id);
-
-        return {
-          version: 1,
-          completedModuleIds: orderedCompletedIds,
-          attemptsByModule: {
-            ...previous.attemptsByModule,
-            [moduleId]: (previous.attemptsByModule[moduleId] ?? 0) + 1,
-          },
-          bestScoresByModule: {
-            ...previous.bestScoresByModule,
-            [moduleId]: Math.max(
-              previous.bestScoresByModule[moduleId] ?? 0,
-              boundedScore,
-            ),
-          },
-          latestScoresByModule: {
-            ...previous.latestScoresByModule,
-            [moduleId]: boundedScore,
-          },
-        };
-      });
+      return result;
     },
     [],
   );
@@ -127,11 +141,14 @@ export function LearningProgressProvider({
     () => ({
       ...progress,
       hydrated,
+      loadError,
       getStatus: (moduleId) =>
-        getProgressStatus(moduleId, progress.completedModuleIds),
+        curriculum.some((item) => item.id === moduleId)
+          ? getProgressStatus(moduleId, progress.completedModuleIds)
+          : "locked",
       recordQuizResult,
     }),
-    [progress, hydrated, recordQuizResult],
+    [progress, hydrated, loadError, recordQuizResult],
   );
 
   return (

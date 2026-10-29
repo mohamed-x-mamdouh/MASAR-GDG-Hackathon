@@ -1,7 +1,5 @@
-
 import {
   curriculum,
-  demoCompletedModuleIds,
   type ModuleStatus,
 } from "@/lib/curriculum";
 
@@ -13,15 +11,43 @@ export type LearningProgress = {
   latestScoresByModule: Record<string, number>;
 };
 
+export type QuizSubmissionResult =
+  | {
+      ok: true;
+      score: number;
+      correctCount: number;
+      totalQuestions: number;
+      passed: boolean;
+      progress: LearningProgress;
+    }
+  | {
+      ok: false;
+      error: string;
+      requiresAuth?: boolean;
+    };
+
+export type LearningProgressLoadResult =
+  | {
+      ok: true;
+      authenticated: boolean;
+      progress: LearningProgress;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
+
 export const PROGRESS_STORAGE_KEY = "masar-learning-progress-v1";
 
-export const defaultLearningProgress: LearningProgress = {
+export const emptyLearningProgress: LearningProgress = {
   version: 1,
-  completedModuleIds: [...demoCompletedModuleIds],
+  completedModuleIds: [],
   attemptsByModule: {},
   bestScoresByModule: {},
   latestScoresByModule: {},
 };
+
+export const defaultLearningProgress = emptyLearningProgress;
 
 export function getProgressStatus(
   moduleId: string,
