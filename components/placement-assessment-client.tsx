@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, UploadCloud, CheckCircle2 } from "lucide-react";
@@ -134,15 +135,22 @@ export default function PlacementAssessmentClient() {
           automatically analyzed yet.
         </p>
 
-        <button
-          type="button"
-          className="button-primary mt-6"
-          onClick={() => {
-            router.push(`/roadmap/${result.recommendedStartModuleId}`);
-          }}
-        >
-          Open recommended module <ArrowRight size={17} />
-        </button>
+        <div className="dashboard-actions mt-6">
+          <button
+            type="button"
+            className="button-primary"
+            onClick={() => {
+              router.push(`/roadmap/${result.recommendedStartModuleId}`);
+            }}
+          >
+            Open recommended module
+            <ArrowRight size={17} />
+          </button>
+
+          <Link href="/dashboard" className="button-secondary">
+            Go to dashboard
+          </Link>
+        </div>
       </section>
     );
   }
@@ -159,9 +167,10 @@ export default function PlacementAssessmentClient() {
           storage.
         </p>
 
-        <div className="mt-4">
+        <div className="cv-upload-control">
           <input
             id="placement-cv"
+            className="cv-file-input"
             type="file"
             accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             disabled={submitting}
@@ -171,6 +180,14 @@ export default function PlacementAssessmentClient() {
               setError(null);
             }}
           />
+
+          <label htmlFor="placement-cv" className="cv-upload-button">
+            <UploadCloud size={20} />
+
+            <span>{cvFile ? "Change CV file" : "Choose your CV"}</span>
+          </label>
+
+          <span className="cv-upload-hint">PDF, DOC, or DOCX · Up to 5 MB</span>
         </div>
 
         {cvFile && (

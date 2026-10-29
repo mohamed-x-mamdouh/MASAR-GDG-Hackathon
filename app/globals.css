@@ -1255,3 +1255,254 @@ a:focus-visible {
     white-space: nowrap;
   }
 }
+/* Homepage journey preview */
+.path-preview-list {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.path-preview-list .preview-step {
+  align-items: flex-start;
+  margin-top: 0;
+}
+
+.path-preview-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.path-preview-copy h3 {
+  margin: 3px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.path-preview-copy p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.path-step-number {
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.path-preview-note {
+  margin-top: 10px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .dashboard-actions {
+    width: 100%;
+  }
+
+  .dashboard-actions > a {
+    justify-content: center;
+  }
+}
+/* Onboarding path selection */
+.onboarding-page {
+  max-width: 1000px;
+}
+
+.onboarding-heading {
+  max-width: 720px;
+  margin: 12px auto 36px;
+  text-align: center;
+}
+
+.onboarding-heading h1 {
+  margin: 14px 0;
+  font-size: clamp(30px, 4.5vw, 44px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+}
+
+.onboarding-heading p {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.onboarding-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.onboarding-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 30px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.onboarding-option:hover {
+  border-color: #c9c2ff;
+  box-shadow: 0 14px 35px rgb(45 35 110 / 7%);
+  transform: translateY(-2px);
+}
+
+.onboarding-option-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border-radius: 15px;
+  background: #efedff;
+  color: var(--primary);
+}
+
+.onboarding-option-label {
+  margin-top: 25px;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.onboarding-option h2 {
+  margin: 9px 0 12px;
+  font-size: 23px;
+  line-height: 1.35;
+}
+
+.onboarding-option > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.onboarding-option-action {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.onboarding-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.onboarding-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 26px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .onboarding-heading {
+    margin-bottom: 28px;
+  }
+
+  .onboarding-options {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .onboarding-option {
+    padding: 23px;
+  }
+
+  .onboarding-footnote {
+    align-items: flex-start;
+    line-height: 1.7;
+  }
+}
+/* Accessible CV upload control */
+.cv-upload-control {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.cv-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.cv-upload-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 11px 17px;
+  border: 1px solid #d8d3ff;
+  border-radius: 11px;
+  background: #f4f2ff;
+  color: #4e40cc;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.cv-upload-button:hover {
+  border-color: #a9a0ff;
+  background: #ebe8ff;
+}
+
+.cv-file-input:focus-visible + .cv-upload-button {
+  outline: 3px solid #b9b1ff;
+  outline-offset: 3px;
+}
+
+.cv-upload-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 480px) {
+  .cv-upload-control {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cv-upload-button {
+    width: 100%;
+  }
+}

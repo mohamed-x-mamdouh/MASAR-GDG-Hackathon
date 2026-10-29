@@ -1,43 +1,101 @@
 import Link from "next/link";
+import { Card } from "@heroui/react";
 import {
   ArrowRight,
-  ArrowUpRight,
   CheckCircle2,
+  ClipboardCheck,
   Compass,
-  LockKeyhole,
   Route,
   Target,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
 
 const features = [
   {
     icon: Route,
-    title: "See the whole journey",
+    title: "See how the journey connects",
     description:
-      "Understand how the stages connect, what comes first, and how each skill supports the next.",
+      "Understand how learning stages build on each other instead of jumping between unrelated tutorials.",
   },
   {
     icon: Target,
     title: "Know your next step",
     description:
-      "Replace scattered tutorials with a clear learning path, practical tasks, and defined goals.",
+      "Use your goals and current knowledge to decide what deserves your attention next.",
   },
   {
     icon: CheckCircle2,
-    title: "Build proof of your skills",
+    title: "Make progress you can verify",
     description:
-      "Move beyond watching videos toward practical work that demonstrates what you can do.",
+      "Move from learning materials to practical work and knowledge checks that help you see what you understand.",
   },
 ];
 
-const previewStages = [
-  { title: "Web Fundamentals", state: "completed" },
-  { title: "HTML & CSS", state: "completed" },
-  { title: "JavaScript", state: "current" },
-  { title: "React", state: "locked" },
+const journeySteps = [
+  {
+    icon: Compass,
+    number: "01",
+    title: "Choose your direction",
+    description:
+      "Tell Masarak how you want to begin.",
+  },
+  {
+    icon: ClipboardCheck,
+    number: "02",
+    title: "Check your current skills",
+    description:
+      "Start fresh or take an initial knowledge assessment.",
+  },
+  {
+    icon: Route,
+    number: "03",
+    title: "Get your next steps",
+    description:
+      "Follow a path and focus on what comes next.",
+  },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let hasChosenStartPath = false;
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("selected_start_path")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    hasChosenStartPath = Boolean(
+      profile?.selected_start_path,
+    );
+  }
+
+  const primaryHref = !user
+    ? "/signup"
+    : hasChosenStartPath
+      ? "/dashboard"
+      : "/onboarding";
+
+  const primaryLabel = !user
+    ? "Create your account"
+    : hasChosenStartPath
+      ? "Continue learning"
+      : "Choose your starting point";
+
+  const assessmentHref = user
+    ? "/onboarding/assessment"
+    : "/signup";
+
+  const assessmentLabel = user
+    ? "Take skill assessment"
+    : "Create an account to assess skills";
+
   return (
     <div className="page-container">
       <section className="hero">
@@ -53,119 +111,161 @@ export default function HomePage() {
               <br />
               Start building
               <br />
-              <span className="text-accent">your future.</span>
+              <span className="text-accent">
+                your future.
+              </span>
             </h1>
 
             <p className="hero-copy">
-              A clearer path to becoming a Full-Stack Developer. Know what to
-              learn, why it matters, and what to do next — one meaningful step
-              at a time.
+              A clearer way to plan your learning. Understand
+              where to begin, what to focus on next, and how
+              to turn knowledge into practical skills — one
+              meaningful step at a time.
             </p>
 
             <div className="hero-actions">
-              <Link href="/signup" className="button-primary">
-                Create account
+              <Link
+                href={primaryHref}
+                className="button-primary"
+              >
+                {primaryLabel}
+                <ArrowRight size={17} />
               </Link>
 
-              <Link href="/login" className="button-secondary">
-                Sign in
+              <Link
+                href={assessmentHref}
+                className="button-secondary"
+              >
+                <ClipboardCheck size={17} />
+                {assessmentLabel}
               </Link>
 
-              <Link href="/roadmap" className="button-secondary">
+              <Link
+                href="/roadmap"
+                className="button-secondary"
+              >
                 Explore roadmap
               </Link>
             </div>
 
             <div className="hero-note">
               <CheckCircle2 size={17} />
-              Structured learning. Practical work. Visible progress.
+              A clearer plan. Practical work. Visible progress.
             </div>
           </div>
 
-          <div className="preview-card">
-            <div className="preview-top">
+          <Card className="preview-card">
+            <Card.Header className="preview-top">
               <div>
-                <div className="preview-title">Your learning path</div>
-                <div className="stat-note">Full-Stack Development</div>
+                <Card.Title className="preview-title">
+                  A path built around you
+                </Card.Title>
+
+                <Card.Description className="stat-note">
+                  From first step to next milestone
+                </Card.Description>
               </div>
-              <span className="preview-label">DEMO</span>
-            </div>
 
-            <div className="preview-title">Your progress</div>
-            <div className="preview-progress">
-              <span style={{ width: "20%" }} />
-            </div>
-            <div className="preview-stat">
-              <span>2 of 10 stages</span>
-              <strong>20%</strong>
-            </div>
+              <span className="preview-label">
+                HOW IT WORKS
+              </span>
+            </Card.Header>
 
-            <div className="module-list" style={{ marginTop: 22 }}>
-              {previewStages.map((stage) => (
-                <div className="preview-step" key={stage.title}>
-                  <div className="step-icon">
-                    {stage.state === "completed" ? (
-                      <CheckCircle2 size={20} />
-                    ) : stage.state === "current" ? (
-                      <Compass size={20} />
-                    ) : (
-                      <LockKeyhole size={18} />
-                    )}
+            <Card.Content className="module-list path-preview-list">
+              {journeySteps.map(
+                ({
+                  icon: Icon,
+                  number,
+                  title,
+                  description,
+                }) => (
+                  <div
+                    className="preview-step"
+                    key={number}
+                  >
+                    <div className="step-icon">
+                      <Icon size={20} />
+                    </div>
+
+                    <div className="path-preview-copy">
+                      <span className="path-step-number">
+                        STEP {number}
+                      </span>
+
+                      <h3>{title}</h3>
+                      <p>{description}</p>
+                    </div>
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <h3>{stage.title}</h3>
-                    <p>
-                      {stage.state === "completed"
-                        ? "Completed"
-                        : stage.state === "current"
-                          ? "Your next learning stage"
-                          : "Prerequisites required"}
-                    </p>
-                  </div>
-                  {stage.state === "current" && (
-                    <ArrowUpRight size={17} color="#5b4ce2" />
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+                ),
+              )}
+            </Card.Content>
+
+            <Card.Footer className="path-preview-note">
+              The roadmap and assessment are provisional.
+              Their learning content will be customized for
+              Masarak.
+            </Card.Footer>
+          </Card>
         </div>
       </section>
 
       <section className="section">
         <div className="section-heading">
-          <span className="eyebrow">A better way to learn</span>
-          <h2>Clarity is the first step to progress.</h2>
+          <span className="eyebrow">
+            A better way to learn
+          </span>
+
+          <h2>
+            Clarity is the first step to progress.
+          </h2>
+
           <p>
-            The problem is not always a lack of resources. Sometimes it is not
-            knowing which resource matters, how topics connect, or how to tell
-            whether you are actually improving.
+            The problem is not always a lack of resources.
+            Sometimes it is not knowing which resource matters,
+            how topics connect, or how to tell whether you are
+            actually improving.
           </p>
         </div>
 
         <div className="feature-grid">
-          {features.map(({ icon: Icon, title, description }) => (
-            <article className="feature-card" key={title}>
-              <div className="feature-icon">
-                <Icon size={22} />
-              </div>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </article>
-          ))}
+          {features.map(
+            ({ icon: Icon, title, description }) => (
+              <article
+                className="feature-card"
+                key={title}
+              >
+                <div className="feature-icon">
+                  <Icon size={22} />
+                </div>
+
+                <h3>{title}</h3>
+                <p>{description}</p>
+              </article>
+            ),
+          )}
         </div>
       </section>
 
       <section className="section">
         <div className="bottom-cta">
           <div>
-            <h2>Your next step should never be a mystery.</h2>
+            <h2>
+              Your next step should never be a mystery.
+            </h2>
+
             <p>
-              Explore the complete Full-Stack journey and see what lies ahead.
+              Start with your goals, check what you already
+              know, and build a learning path you can keep
+              refining.
             </p>
           </div>
-          <Link href="/roadmap" className="button-primary">
-            View the roadmap <ArrowRight size={17} />
+
+          <Link
+            href={primaryHref}
+            className="button-primary"
+          >
+            {primaryLabel}
+            <ArrowRight size={17} />
           </Link>
         </div>
       </section>

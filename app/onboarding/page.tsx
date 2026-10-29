@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import {
+  ArrowRight,
+  BookOpen,
+  ClipboardCheck,
+  Compass,
+} from "lucide-react";
+
 import { createClient } from "@/lib/supabase/server";
 import { beginFromScratchAction } from "@/app/onboarding/actions";
 
@@ -14,63 +21,98 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  const { data: error } = await supabase
     .from("profiles")
     .select("selected_start_path")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile?.selected_start_path) {
-    redirect("/dashboard");
+  if (error) {
+    console.error("Failed to load onboarding profile:", error);
   }
 
-  return (
-    <div className="page-container">
-      <header className="quiz-header">
-        <span className="eyebrow">Let&apos;s personalize your journey</span>
 
-        <h1>How would you like to start?</h1>
+  return (
+    <div className="page-container onboarding-page">
+      <header className="onboarding-heading">
+        <span className="eyebrow">
+          <span className="eyebrow-dot" />
+          Personalize your journey
+        </span>
+
+        <h1>Where would you like to start?</h1>
 
         <p>
-          Start from the foundations, or take an initial skills
-          assessment to identify topics you may already know.
+          Everyone starts somewhere different. Choose the
+          option that fits you, and Masarak will help you
+          decide what to focus on next.
         </p>
       </header>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="panel p-6">
-          <h2 className="text-xl font-semibold">Start from scratch</h2>
+      <div className="onboarding-options">
+        <section className="panel onboarding-option">
+          <div className="onboarding-option-icon">
+            <BookOpen size={25} />
+          </div>
 
-          <p className="mt-3">
-            Follow the learning path from the beginning, with no
-            prior knowledge assumed.
+          <span className="onboarding-option-label">
+            OPTION 01
+          </span>
+
+          <h2>Start from scratch</h2>
+
+          <p>
+            Begin with the foundations and move forward
+            step by step. Choose this option if you prefer
+            to learn everything from the beginning.
           </p>
 
-          <form action={beginFromScratchAction} className="mt-6">
-            <button type="submit" className="button-primary">
+          <form
+            action={beginFromScratchAction}
+            className="onboarding-option-action"
+          >
+            <button
+              type="submit"
+              className="button-primary onboarding-button"
+            >
               Start learning
+              <ArrowRight size={18} />
             </button>
           </form>
         </section>
 
-        <section className="panel p-6">
-          <h2 className="text-xl font-semibold">
-            Assess my current skills
-          </h2>
+        <section className="panel onboarding-option">
+          <div className="onboarding-option-icon">
+            <ClipboardCheck size={25} />
+          </div>
 
-          <p className="mt-3">
-            Answer a provisional knowledge assessment. You can also
-            attach your CV as extra context.
+          <span className="onboarding-option-label">
+            OPTION 02
+          </span>
+
+          <h2>Assess my current skills</h2>
+
+          <p>
+            Answer a set of initial questions to estimate
+            what you already know and identify a suggested
+            starting point. You can optionally attach your CV.
           </p>
 
           <Link
             href="/onboarding/assessment"
-            className="button-primary mt-6"
+            className="button-primary onboarding-button"
           >
             Take assessment
+            <ArrowRight size={18} />
           </Link>
         </section>
       </div>
+
+      <p className="onboarding-footnote">
+        <Compass size={16} />
+        The current assessment and learning stages are
+        provisional and will be customized for Masarak.
+      </p>
     </div>
   );
 }
