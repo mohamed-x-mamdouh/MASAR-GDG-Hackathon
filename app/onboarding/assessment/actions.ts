@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -22,8 +24,15 @@ export type PublicAssessmentQuestion = {
 };
 
 export type StartTopicAssessmentResult =
-  | { ok: true; attemptId: string; questions: PublicAssessmentQuestion[] }
-  | { ok: false; error: string };
+  | {
+      ok: true;
+      attemptId: string;
+      questions: PublicAssessmentQuestion[];
+    }
+  | {
+      ok: false;
+      error: string;
+    };
 
 export type TopicAssessmentReport = {
   attemptId: string;
@@ -62,20 +71,32 @@ export async function startTopicAssessmentAction(
   selections: TopicSelectionInput[],
 ): Promise<StartTopicAssessmentResult> {
   const supabase = await createClient();
+
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { ok: false, error: "Your session has expired. Please sign in again." };
+    return {
+      ok: false,
+      error: "Your session has expired. Please sign in again.",
+    };
   }
 
-  if (!Array.isArray(selections) || selections.length === 0 || selections.length > 50) {
-    return { ok: false, error: "Choose at least one topic to continue." };
+  if (
+    !Array.isArray(selections) ||
+    selections.length === 0 ||
+    selections.length > 50
+  ) {
+    return {
+      ok: false,
+      error: "Choose at least one topic to continue.",
+    };
   }
 
   const seen = new Set<string>();
+
   for (const item of selections) {
     if (
       !item ||
@@ -83,33 +104,49 @@ export async function startTopicAssessmentAction(
       !["know", "unknown", "unsure"].includes(item.selfAssessment) ||
       seen.has(item.topicId)
     ) {
-      return { ok: false, error: "The topic selection is invalid. Please review it." };
+      return {
+        ok: false,
+        error: "The topic selection is invalid. Please review it.",
+      };
     }
+
     seen.add(item.topicId);
   }
 
   const topicsToTest = selections.filter(
-    (item) => item.selfAssessment === "know" || item.selfAssessment === "unsure",
+    (item) =>
+      item.selfAssessment === "know" ||
+      item.selfAssessment === "unsure",
   );
 
   if (topicsToTest.length > 6) {
     return {
       ok: false,
-      error: "Choose up to 6 topics to test in one session. You can assess more topics in another session.",
+      error:
+        "Choose up to 6 topics to test in one session. You can assess more topics in another session.",
     };
   }
 
   try {
     const admin = createAdminClient();
+
     const { data: topics, error: topicsError } = await admin
       .from("learning_topics")
       .select("id, module_id, title, is_active")
-      .in("id", selections.map((item) => item.topicId))
+      .in(
+        "id",
+        selections.map((item) => item.topicId),
+      )
       .eq("is_active", true);
 
     if (topicsError) throw topicsError;
+
     if (!topics || topics.length !== selections.length) {
-      return { ok: false, error: "One or more selected topics are no longer available. Refresh and try again." };
+      return {
+        ok: false,
+        error:
+          "One or more selected topics are no longer available. Refresh and try again.",
+      };
     }
 
     const questionSnapshot: Array<Record<string, unknown>> = [];
@@ -118,20 +155,32 @@ export async function startTopicAssessmentAction(
     if (topicsToTest.length > 0) {
       const { data: bank, error: bankError } = await admin
         .from("topic_assessment_questions")
-        .select("id, topic_id, prompt, question_type, difficulty, options, correct_option_id, explanation, version")
-        .in("topic_id", topicsToTest.map((item) => item.topicId))
+        .select(
+          "id, topic_id, prompt, question_type, difficulty, options, correct_option_id, explanation, version",
+        )
+        .in(
+          "topic_id",
+          topicsToTest.map((item) => item.topicId),
+        )
         .eq("is_active", true);
 
       if (bankError) throw bankError;
 
       for (const selection of topicsToTest) {
-        const topic = topics.find((item) => item.id === selection.topicId);
-        const available = (bank ?? []).filter((item) => item.topic_id === selection.topicId);
+        const topic = topics.find(
+          (item) => item.id === selection.topicId,
+        );
+
+        const available = (bank ?? []).filter(
+          (item) => item.topic_id === selection.topicId,
+        );
 
         if (available.length < 2) {
           return {
             ok: false,
-            error: `The assessment for "${topic?.title ?? "this topic"}" is not ready yet. An admin must publish at least 2 questions for it.`,
+            error: `The assessment for "${
+              topic?.title ?? "this topic"
+            }" is not ready yet. An admin must publish at least 2 questions for it.`,
           };
         }
 
@@ -141,19 +190,26 @@ export async function startTopicAssessmentAction(
 
         for (const question of chosen) {
           const options = Array.isArray(question.options)
-            ? question.options as Array<{ id: string; label: string }>
+            ? (question.options as Array<{
+                id: string;
+                label: string;
+              }>)
             : [];
 
           const validAnswerExists = options.some(
             (option) => option.id === question.correct_option_id,
           );
+
           if (!validAnswerExists || options.length < 2) {
             return {
               ok: false,
-              error: `A question in "${topic?.title ?? "this topic"}" has invalid answer data. Please contact the admin team.`,
+              error: `A question in "${
+                topic?.title ?? "this topic"
+              }" has invalid answer data. Please contact the admin team.`,
             };
           }
 
+          // Store the complete question snapshot server-side.
           questionSnapshot.push({
             id: question.id,
             topic_id: question.topic_id,
@@ -166,6 +222,7 @@ export async function startTopicAssessmentAction(
             version: question.version,
           });
 
+          // Never send the correct answer to the client.
           publicQuestions.push({
             id: question.id,
             topicId: question.topic_id,
@@ -180,6 +237,26 @@ export async function startTopicAssessmentAction(
       }
     }
 
+    // Save the selected starting path.
+    // Upsert also handles users whose profile row does not exist yet.
+    const { error: profileError } = await admin
+      .from("profiles")
+      .upsert(
+        {
+          id: user.id,
+          selected_start_path: "placement",
+        },
+        {
+          onConflict: "id",
+        },
+      );
+
+    if (profileError) {
+      console.error("Failed to save assessment path:", profileError);
+      throw profileError;
+    }
+
+    // Create the assessment attempt.
     const { data: attempt, error: attemptError } = await admin
       .from("topic_assessment_attempts")
       .insert({
@@ -204,6 +281,7 @@ export async function startTopicAssessmentAction(
     };
   } catch (error) {
     console.error("Failed to start topic assessment:", error);
+
     return {
       ok: false,
       error: "We couldn't prepare your assessment. Please try again.",
@@ -214,35 +292,64 @@ export async function startTopicAssessmentAction(
 export async function submitTopicAssessmentAction(
   attemptId: string,
   answers: Record<string, string>,
-): Promise<{ ok: true; report: TopicAssessmentReport } | { ok: false; error: string }> {
+): Promise<
+  | { ok: true; report: TopicAssessmentReport }
+  | { ok: false; error: string }
+> {
   const supabase = await createClient();
+
   const {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return { ok: false, error: "Your session has expired. Please sign in again." };
+    return {
+      ok: false,
+      error: "Your session has expired. Please sign in again.",
+    };
   }
 
-  if (!attemptId || !answers || typeof answers !== "object" || Array.isArray(answers)) {
-    return { ok: false, error: "The submitted assessment data is invalid." };
+  if (
+    !attemptId ||
+    !answers ||
+    typeof answers !== "object" ||
+    Array.isArray(answers)
+  ) {
+    return {
+      ok: false,
+      error: "The submitted assessment data is invalid.",
+    };
   }
 
-  const { data, error } = await supabase.rpc("complete_topic_assessment", {
-    p_attempt_id: attemptId,
-    p_answers: answers,
-  });
+  const { data, error } = await supabase.rpc(
+    "complete_topic_assessment",
+    {
+      p_attempt_id: attemptId,
+      p_answers: answers,
+    },
+  );
 
   if (error) {
     console.error("Failed to complete topic assessment:", error);
+
     return {
       ok: false,
-      error: error.message.includes("Answer every displayed question")
+      error: error.message.includes(
+        "Answer every displayed question",
+      )
         ? "Please answer every question before submitting."
         : "We couldn't save your assessment. Your result has not been confirmed. Please try again.",
     };
   }
 
-  return { ok: true, report: data as TopicAssessmentReport };
+  revalidatePath("/dashboard");
+  revalidatePath("/onboarding");
+  revalidatePath("/roadmap");
+  revalidatePath("/profile");
+
+  return {
+    ok: true,
+    report: data as TopicAssessmentReport,
+  };
 }

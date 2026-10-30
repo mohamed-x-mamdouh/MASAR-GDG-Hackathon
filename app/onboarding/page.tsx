@@ -13,6 +13,7 @@ import { connection } from "next/server";
 
 export default async function OnboardingPage() {
   await connection();
+
   const supabase = await createClient();
 
   const {
@@ -23,6 +24,19 @@ export default async function OnboardingPage() {
     redirect("/login");
   }
 
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("selected_start_path")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load onboarding profile:", error);
+  }
+
+  if (profile?.selected_start_path) {
+    redirect("/dashboard");
+  }
 
   return (
     <div className="page-container onboarding-page">
@@ -85,9 +99,9 @@ export default async function OnboardingPage() {
           <h2>Assess my current skills</h2>
 
           <p>
-            Answer a set of initial questions to estimate
-            what you already know and identify a suggested
-            starting point. You can optionally attach your CV.
+            Select the topics you already know or are unsure about.
+            Masarak will assess your knowledge and help you identify
+            what to learn next.
           </p>
 
           <Link
