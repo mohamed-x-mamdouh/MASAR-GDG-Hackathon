@@ -12,18 +12,19 @@ import {
   Clock3,
   ExternalLink,
   ListChecks,
+  LockKeyhole,
   Target,
 } from "lucide-react";
 
 import { curriculum, getModuleById } from "@/lib/curriculum";
+import { getModuleAccess } from "@/lib/module-access";
+
 import ModuleTopicList from "@/components/module-topic-list";
 
 import {
   ModuleProgressBadge,
   ModuleQuizAction,
 } from "@/components/module-progress";
-
-import ModuleContentGate from "@/components/module-content-gate";
 
 type Props = {
   params: Promise<{ moduleId: string }>;
@@ -55,6 +56,8 @@ export default async function ModulePage({ params }: Props) {
   if (!roadmapModule) {
     notFound();
   }
+
+  const access = await getModuleAccess(moduleId);
 
   const previousModule = curriculum[roadmapModule.number - 2];
   const nextModule = curriculum[roadmapModule.number];
@@ -119,7 +122,6 @@ export default async function ModulePage({ params }: Props) {
 
       <div className="detail-columns">
         <div>
-          {/* Topic-level progress from the new assessment system */}
           <ModuleTopicList moduleId={roadmapModule.id} />
 
           <section className="panel detail-section">
@@ -141,60 +143,103 @@ export default async function ModulePage({ params }: Props) {
             </ul>
           </section>
 
-          {/* Keep the original module lock behavior */}
-          <ModuleContentGate moduleId={roadmapModule.id}>
+          {!access.allowed ? (
             <section className="panel detail-section">
-              <h2>
-                <BookOpen
-                  size={19}
-                  style={{ display: "inline", verticalAlign: "middle" }}
-                />{" "}
-                Learning resources
-              </h2>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 14,
+                }}
+              >
+                <LockKeyhole size={24} />
 
-              {roadmapModule.resources.map((resource) => (
-                <a
-                  className="resource-card"
-                  href={resource.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  key={resource.title}
-                >
-                  <div className="step-icon">
-                    <BookOpen size={19} />
-                  </div>
+                <div>
+                  <h2>
+                    {access.authenticated
+                      ? "Learning content locked"
+                      : "Sign in to access learning content"}
+                  </h2>
 
-                  <div style={{ flex: 1 }}>
-                    <h3>{resource.title}</h3>
-                    <p>
-                      {resource.provider} · {resource.type}
-                    </p>
-                  </div>
+                  <p>
+                    {access.authenticated
+                      ? "Pass the quizzes for this module's prerequisites to unlock its learning resources, completion criteria, practical task, and knowledge checkpoint."
+                      : "Sign in to your account to access your learning content and track your progress."}
+                  </p>
 
-                  <ExternalLink size={16} color="#858ba0" />
-                </a>
-              ))}
+                  {!access.authenticated && (
+                    <Link
+                      href="/login"
+                      className="button-primary"
+                      style={{ marginTop: 14 }}
+                    >
+                      Sign in
+                      <ArrowRight size={17} />
+                    </Link>
+                  )}
+
+                  <p className="stat-note">
+                    You can preview the learning objectives and prerequisites
+                    while this module is locked.
+                  </p>
+                </div>
+              </div>
             </section>
+          ) : (
+            <>
+              <section className="panel detail-section">
+                <h2>
+                  <BookOpen
+                    size={19}
+                    style={{ display: "inline", verticalAlign: "middle" }}
+                  />{" "}
+                  Learning resources
+                </h2>
 
-            <section className="panel detail-section">
-              <h2>
-                <ListChecks
-                  size={19}
-                  style={{ display: "inline", verticalAlign: "middle" }}
-                />{" "}
-                Completion criteria
-              </h2>
+                {roadmapModule.resources.map((resource) => (
+                  <a
+                    className="resource-card"
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    key={resource.title}
+                  >
+                    <div className="step-icon">
+                      <BookOpen size={19} />
+                    </div>
 
-              <ul className="detail-list">
-                {roadmapModule.completionCriteria.map((criterion) => (
-                  <li key={criterion}>
-                    <CircleCheck size={17} />
-                    <span>{criterion}</span>
-                  </li>
+                    <div style={{ flex: 1 }}>
+                      <h3>{resource.title}</h3>
+                      <p>
+                        {resource.provider} · {resource.type}
+                      </p>
+                    </div>
+
+                    <ExternalLink size={16} color="#858ba0" />
+                  </a>
                 ))}
-              </ul>
-            </section>
-          </ModuleContentGate>
+              </section>
+
+              <section className="panel detail-section">
+                <h2>
+                  <ListChecks
+                    size={19}
+                    style={{ display: "inline", verticalAlign: "middle" }}
+                  />{" "}
+                  Completion criteria
+                </h2>
+
+                <ul className="detail-list">
+                  {roadmapModule.completionCriteria.map((criterion) => (
+                    <li key={criterion}>
+                      <CircleCheck size={17} />
+                      <span>{criterion}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </>
+          )}
         </div>
 
         <aside>
@@ -219,7 +264,6 @@ export default async function ModulePage({ params }: Props) {
             )}
           </section>
 
-          {/* New topic assessment entry point */}
           <section className="panel detail-section">
             <h2>Topic-level assessment</h2>
 
@@ -238,28 +282,26 @@ export default async function ModulePage({ params }: Props) {
             </Link>
           </section>
 
-          {/* Restore the original quiz and practical task gate */}
-          <ModuleContentGate
-            moduleId={roadmapModule.id}
-            showLockedMessage={false}
-          >
-            <ModuleQuizAction moduleId={roadmapModule.id} />
+          {access.allowed && (
+            <>
+              <ModuleQuizAction moduleId={roadmapModule.id} />
 
-            <section className="task-card detail-section">
-              <span className="eyebrow">
-                <ListChecks size={15} />
-                Practical task
-              </span>
+              <section className="task-card detail-section">
+                <span className="eyebrow">
+                  <ListChecks size={15} />
+                  Practical task
+                </span>
 
-              <h3>Put your knowledge to work</h3>
-              <p>{roadmapModule.task}</p>
+                <h3>Put your knowledge to work</h3>
+                <p>{roadmapModule.task}</p>
 
-              <p className="stat-note">
-                Submission and mentor review will be enabled when the backend
-                workflow is implemented.
-              </p>
-            </section>
-          </ModuleContentGate>
+                <p className="stat-note">
+                  Submission and mentor review will be enabled when the
+                  backend workflow is implemented.
+                </p>
+              </section>
+            </>
+          )}
 
           <section className="panel detail-section">
             <h2>Skills covered</h2>

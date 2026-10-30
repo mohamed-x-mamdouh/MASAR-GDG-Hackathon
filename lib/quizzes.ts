@@ -1,4 +1,4 @@
-
+import "server-only";
 export type QuizQuestion = {
   id: string;
   prompt: string;

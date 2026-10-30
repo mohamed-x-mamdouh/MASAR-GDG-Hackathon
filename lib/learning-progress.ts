@@ -1,7 +1,8 @@
+
 import {
   curriculum,
   type ModuleStatus,
-} from "@/lib/curriculum";
+} from "@/lib/curriculum-public";
 
 export type LearningProgress = {
   version: 1;
@@ -11,6 +12,12 @@ export type LearningProgress = {
   latestScoresByModule: Record<string, number>;
 };
 
+export type QuizReviewItem = {
+  questionId: string;
+  correctOptionId: string;
+  explanation: string;
+};
+
 export type QuizSubmissionResult =
   | {
       ok: true;
@@ -18,6 +25,7 @@ export type QuizSubmissionResult =
       correctCount: number;
       totalQuestions: number;
       passed: boolean;
+      review: QuizReviewItem[];
       progress: LearningProgress;
     }
   | {
@@ -70,11 +78,15 @@ export function getProgressStatus(
   return prerequisitesCompleted ? "current" : "locked";
 }
 
-export function getNextAvailableModule(completedModuleIds: string[]) {
+export function getNextAvailableModule(
+  completedModuleIds: string[],
+) {
   return curriculum.find(
     (item) =>
       !completedModuleIds.includes(item.id) &&
-      item.prerequisites.every((id) => completedModuleIds.includes(id)),
+      item.prerequisites.every((id) =>
+        completedModuleIds.includes(id),
+      ),
   );
 }
 
@@ -94,12 +106,15 @@ export function normalizeLearningProgress(
     return null;
   }
 
-  const validIds = new Set(curriculum.map((item) => item.id));
+  const validIds = new Set(
+    curriculum.map((item) => item.id),
+  );
 
   const completedModuleIds = [
     ...new Set(
       candidate.completedModuleIds.filter(
-        (id): id is string => typeof id === "string" && validIds.has(id),
+        (id): id is string =>
+          typeof id === "string" && validIds.has(id),
       ),
     ),
   ];
@@ -126,17 +141,26 @@ export function normalizeLearningProgress(
     return result;
   }
 
-  const attemptsByModule = normalizeScoreMap(candidate.attemptsByModule);
+  const attemptsByModule = normalizeScoreMap(
+    candidate.attemptsByModule,
+  );
 
   for (const id of Object.keys(attemptsByModule)) {
-    attemptsByModule[id] = Math.max(0, Math.floor(attemptsByModule[id]));
+    attemptsByModule[id] = Math.max(
+      0,
+      Math.floor(attemptsByModule[id]),
+    );
   }
 
   return {
     version: 1,
     completedModuleIds,
     attemptsByModule,
-    bestScoresByModule: normalizeScoreMap(candidate.bestScoresByModule),
-    latestScoresByModule: normalizeScoreMap(candidate.latestScoresByModule),
+    bestScoresByModule: normalizeScoreMap(
+      candidate.bestScoresByModule,
+    ),
+    latestScoresByModule: normalizeScoreMap(
+      candidate.latestScoresByModule,
+    ),
   };
 }

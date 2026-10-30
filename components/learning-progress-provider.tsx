@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { curriculum } from "@/lib/curriculum";
+import { curriculum } from "@/lib/curriculum-public";
 import {
   emptyLearningProgress,
   getProgressStatus,

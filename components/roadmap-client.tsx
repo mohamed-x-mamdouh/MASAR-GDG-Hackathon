@@ -8,7 +8,7 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
-import { curriculum } from "@/lib/curriculum";
+import { curriculum } from "@/lib/curriculum-public";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 
 const statusLabels = {

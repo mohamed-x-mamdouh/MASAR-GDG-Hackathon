@@ -11,7 +11,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Card, ProgressBar } from "@heroui/react";
-import { curriculum } from "@/lib/curriculum";
+import { curriculum } from "@/lib/curriculum-public";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 
 export default function DashboardClient() {

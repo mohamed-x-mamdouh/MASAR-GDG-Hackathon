@@ -1,3 +1,5 @@
+import "server-only";
+
 export type PlacementOption = {
   id: string;
   label: string;

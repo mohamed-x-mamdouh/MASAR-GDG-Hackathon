@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -12,15 +11,15 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { curriculum } from "@/lib/curriculum";
-import type { ModuleQuiz } from "@/lib/quizzes";
+import { curriculum } from "@/lib/curriculum-public";
+import type { PublicModuleQuiz } from "@/lib/quiz-types";
 import { useLearningProgress } from "@/components/learning-progress-provider";
 import type { QuizSubmissionResult } from "@/lib/learning-progress";
 
 type Props = {
   moduleId: string;
   moduleTitle: string;
-  quiz: ModuleQuiz;
+  quiz: PublicModuleQuiz;
 };
 
 export default function QuizClient({
@@ -38,6 +37,7 @@ export default function QuizClient({
   } = useLearningProgress();
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
+
   const [submission, setSubmission] = useState<
     Extract<QuizSubmissionResult, { ok: true }> | null
   >(null);
@@ -306,11 +306,16 @@ export default function QuizClient({
 
           <div className="quiz-review">
             {quiz.questions.map((item, index) => {
+              const reviewItem = submission.review.find(
+                (entry) => entry.questionId === item.id,
+              );
+
               const correct =
-                answers[item.id] === item.correctOptionId;
+                answers[item.id] === reviewItem?.correctOptionId;
 
               const correctAnswer = item.options.find(
-                (option) => option.id === item.correctOptionId,
+                (option) =>
+                  option.id === reviewItem?.correctOptionId,
               );
 
               const selectedAnswer = item.options.find(
@@ -339,15 +344,17 @@ export default function QuizClient({
                     {selectedAnswer?.label ?? "No answer"}
                   </p>
 
-                  {!correct && (
+                  {!correct && correctAnswer && (
                     <p>
-                      Correct answer: {correctAnswer?.label}
+                      Correct answer: {correctAnswer.label}
                     </p>
                   )}
 
-                  <p className="stat-note">
-                    {item.explanation}
-                  </p>
+                  {reviewItem?.explanation && (
+                    <p className="stat-note">
+                      {reviewItem.explanation}
+                    </p>
+                  )}
                 </article>
               );
             })}

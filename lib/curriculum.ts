@@ -1,3 +1,5 @@
+import "server-only";
+
 export type ModuleStatus = "completed" | "current" | "locked";
 
 export type LearningResource = {

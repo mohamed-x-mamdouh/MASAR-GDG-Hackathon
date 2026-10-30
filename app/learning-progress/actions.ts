@@ -1,9 +1,11 @@
+
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { curriculum } from "@/lib/curriculum";
 import { quizzes } from "@/lib/quizzes";
+
 import {
   emptyLearningProgress,
   type LearningProgress,
@@ -65,8 +67,7 @@ async function readUserProgress(
       score,
     );
 
-    // Results are ordered oldest to newest, so the last
-    // score processed becomes the latest score.
+    // Results are ordered oldest to newest.
     latestScoresByModule[moduleId] = score;
   }
 
@@ -82,6 +83,7 @@ async function readUserProgress(
 export async function getLearningProgressAction():
   Promise<LearningProgressLoadResult> {
   const supabase = await createClient();
+
   const {
     data: { user },
     error: authError,
@@ -180,84 +182,91 @@ export async function submitModuleQuizAction(
   try {
     const admin = createAdminClient();
 
-    if (roadmapModule.prerequisites.length > 0) {
-      const { data: prerequisiteRows, error } = await admin
-        .from("module_progress")
-        .select("module_id")
-        .eq("user_id", user.id)
-        .in("module_id", roadmapModule.prerequisites)
-        .in("status", ["completed", "validated"]);
+    // Construct the immutable snapshot on the server.
+    // The answer keys never come from the browser.
+    const questionSnapshot = quiz.questions.map((question) => ({
+      question_id: question.id,
+      prompt: question.prompt,
+      options: question.options,
+      selected_option_id: answers[question.id],
+      correct_option_id: question.correctOptionId,
+      explanation: question.explanation,
+    }));
 
-      if (error) throw error;
-
-      const verifiedPrerequisites = new Set(
-        (prerequisiteRows ?? []).map((row) => row.module_id),
-      );
-
-      const allPrerequisitesVerified =
-        roadmapModule.prerequisites.every((id) =>
-          verifiedPrerequisites.has(id),
-        );
-
-      if (!allPrerequisitesVerified) {
-        return {
-          ok: false,
-          error: "Complete the prerequisite modules before taking this quiz.",
-        };
-      }
-    }
-
-    const correctCount = quiz.questions.filter(
-      (question) =>
-        answers[question.id] === question.correctOptionId,
-    ).length;
-
-    const score = Math.round(
-      (correctCount / quiz.questions.length) * 100,
-    );
-
-    const passed = score >= quiz.passPercentage;
-
-    const { error: attemptError } = await admin
-      .from("quiz_attempts")
-      .insert({
-        user_id: user.id,
-        module_id: moduleId,
-        answers,
-        score,
-        passed,
+    // One database transaction:
+    // 1. Verify prerequisites.
+    // 2. Calculate the score.
+    // 3. Insert the quiz attempt.
+    // 4. Insert the immutable question snapshots.
+    // 5. Update module progress if passed.
+    const { data: savedAttempt, error: saveError } =
+      await admin.rpc("submit_module_quiz_attempt", {
+        p_user_id: user.id,
+        p_module_id: moduleId,
+        p_answers: answers,
+        p_question_snapshot: questionSnapshot,
+        p_pass_percentage: quiz.passPercentage,
+        p_prerequisite_module_ids: roadmapModule.prerequisites,
       });
 
-    if (attemptError) throw attemptError;
+    if (saveError) {
+      const message = saveError.message.toLowerCase();
 
-    if (passed) {
-      const { error: progressError } = await admin
-        .from("module_progress")
-        .upsert(
-          {
-            user_id: user.id,
-            module_id: moduleId,
-            status: "completed",
-            verification_source: "module_quiz",
-            score,
-            verified_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "user_id,module_id",
-          },
-        );
+      if (message.includes("prerequisite")) {
+        return {
+          ok: false,
+          error:
+            "Complete the prerequisite modules before taking this quiz.",
+        };
+      }
 
-      if (progressError) throw progressError;
+      throw saveError;
     }
 
+    if (
+      !savedAttempt ||
+      typeof savedAttempt !== "object" ||
+      Array.isArray(savedAttempt)
+    ) {
+      throw new Error("The database returned an invalid quiz result.");
+    }
+
+    const result = savedAttempt as {
+      attempt_id?: unknown;
+      score?: unknown;
+      correct_count?: unknown;
+      total_questions?: unknown;
+      passed?: unknown;
+    };
+
+    if (
+      typeof result.attempt_id !== "string" ||
+      typeof result.score !== "number" ||
+      typeof result.correct_count !== "number" ||
+      typeof result.total_questions !== "number" ||
+      typeof result.passed !== "boolean" ||
+      result.total_questions !== quiz.questions.length
+    ) {
+      throw new Error("The saved quiz result is incomplete.");
+    }
+
+    // Reload progress after the transaction has completed.
     const progress = await readUserProgress(user.id);
+
+    // Feedback is returned only after the submission was saved.
+    const review = quiz.questions.map((question) => ({
+      questionId: question.id,
+      correctOptionId: question.correctOptionId,
+      explanation: question.explanation,
+    }));
 
     return {
       ok: true,
-      score,
-      correctCount,
-      totalQuestions: quiz.questions.length,
-      passed,
+      score: result.score,
+      correctCount: result.correct_count,
+      totalQuestions: result.total_questions,
+      passed: result.passed,
+      review,
       progress,
     };
   } catch (error) {
