@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 
 export const metadata: Metadata = {
   title: "My Profile",
 };
 
 export default async function ProfilePage() {
+  await connection();
   const supabase = await createClient();
 
   const {

@@ -9,8 +9,10 @@ import {
 
 import { createClient } from "@/lib/supabase/server";
 import { beginFromScratchAction } from "@/app/onboarding/actions";
+import { connection } from "next/server";
 
 export default async function OnboardingPage() {
+  await connection();
   const supabase = await createClient();
 
   const {
@@ -19,16 +21,6 @@ export default async function OnboardingPage() {
 
   if (!user) {
     redirect("/login");
-  }
-
-  const { data: error } = await supabase
-    .from("profiles")
-    .select("selected_start_path")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Failed to load onboarding profile:", error);
   }
 
 

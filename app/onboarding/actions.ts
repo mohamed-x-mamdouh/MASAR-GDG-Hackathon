@@ -188,7 +188,7 @@ export async function submitPlacementAssessmentAction(
         status: "pending",
         cv_storage_path: cvStoragePath,
         // CV extraction is not implemented yet; do not invent extracted skills.
-        extracted_skills: null,
+        extracted_skills: [],
         skill_results: {
           assessment_version: "provisional-v1",
           modules: evaluation.modules,

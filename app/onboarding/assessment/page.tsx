@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 import PlacementAssessmentClient from "@/components/placement-assessment-client";
+import { connection } from "next/server";
 
 export default async function PlacementAssessmentPage() {
+  await connection();
   const supabase = await createClient();
 
   const {

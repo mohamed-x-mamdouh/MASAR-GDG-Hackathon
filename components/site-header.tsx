@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Compass, LayoutDashboard, Map } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { signOutAction } from "@/app/auth/actions";
+import { connection } from "next/server";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -9,6 +10,7 @@ const navigation = [
 ];
 
 export default async function SiteHeader() {
+  await connection();
   const supabase = await createClient();
 
   const {

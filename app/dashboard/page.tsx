@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import DashboardClient from "@/components/dashboard-client";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 
 export const metadata: Metadata = {
   title: "Student Dashboard",
 };
 
 export default async function DashboardPage() {
+  await connection();
   const supabase = await createClient();
 
   const {

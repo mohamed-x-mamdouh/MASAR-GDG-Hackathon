@@ -9,6 +9,7 @@ import {
   Target,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { connection } from "next/server";
 
 const features = [
   {
@@ -56,6 +57,7 @@ const journeySteps = [
 ];
 
 export default async function HomePage() {
+  await connection();
   const supabase = await createClient();
 
   const {
