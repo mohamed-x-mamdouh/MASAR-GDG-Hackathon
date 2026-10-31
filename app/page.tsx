@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Card } from "@heroui/react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -156,24 +155,24 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <Card className="preview-card">
-            <Card.Header className="preview-top">
+          <article className="preview-card">
+            <header className="preview-top">
               <div>
-                <Card.Title className="preview-title">
+                <h2 className="preview-title">
                   A path built around you
-                </Card.Title>
+                </h2>
 
-                <Card.Description className="stat-note">
+                <p className="stat-note">
                   From first step to next milestone
-                </Card.Description>
+                </p>
               </div>
 
               <span className="preview-label">
                 HOW IT WORKS
               </span>
-            </Card.Header>
+            </header>
 
-            <Card.Content className="module-list path-preview-list">
+            <div className="module-list path-preview-list">
               {journeySteps.map(
                 ({
                   icon: Icon,
@@ -200,14 +199,14 @@ export default async function HomePage() {
                   </div>
                 ),
               )}
-            </Card.Content>
+            </div>
 
-            <Card.Footer className="path-preview-note">
+            <footer className="path-preview-note">
               The roadmap and assessment are provisional.
               Their learning content will be customized for
               Masarak.
-            </Card.Footer>
-          </Card>
+            </footer>
+          </article>
         </div>
       </section>
 

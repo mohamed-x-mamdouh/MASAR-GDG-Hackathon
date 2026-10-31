@@ -13,11 +13,247 @@ import {
 import { Card, ProgressBar } from "@heroui/react";
 import { curriculum } from "@/lib/curriculum-public";
 import { useLearningProgress } from "@/components/learning-progress-provider";
+import type { RoadmapOverviewData } from "@/lib/roadmap-student-types";
 
-export default function DashboardClient() {
+type Props = {
+  roadmapData?: RoadmapOverviewData;
+};
+
+export default function DashboardClient({ roadmapData }: Props) {
   const { completedModuleIds, getStatus, hydrated, loadError } =
     useLearningProgress();
 
+  if (roadmapData && roadmapData.hasPublishedRoadmap) {
+    const modules = roadmapData.modules;
+    const verifiedModules = modules.filter((m) => m.status === "completed");
+    const verifiedCount = verifiedModules.length;
+    const progress = roadmapData.overallProgress;
+    const currentModule = modules.find((m) => m.status === "current");
+
+    return (
+      <div className="page-container">
+        <div className="dashboard-welcome">
+          <div>
+            <span className="eyebrow">Student workspace</span>
+            <h1>Your journey, at a glance.</h1>
+            <p>
+              See where you are, review your progress, and decide what to do
+              next.
+            </p>
+          </div>
+
+          <div className="dashboard-actions">
+            <div className="hero-actions">
+              <Link href="/roadmap" className="button-primary">
+                Open roadmap <ArrowRight size={17} />
+              </Link>
+
+              <Link
+                href="/onboarding/assessment"
+                className="button-secondary"
+              >
+                <ClipboardCheck size={17} />
+                Assess my current skills
+              </Link>
+            </div>
+
+            <Link
+              href="/onboarding/assessment"
+              className="button-secondary"
+            >
+              Reassess skills
+            </Link>
+          </div>
+        </div>
+
+        <div className="stats-grid">
+          <Card className="stat-card">
+            <div className="stat-label">
+              <BookOpen size={17} />
+              Verified stages
+            </div>
+
+            <div className="stat-value">
+              {verifiedCount}
+              <span className="stat-note"> / {modules.length}</span>
+            </div>
+
+            <div className="stat-note">
+              Verified through completed coursework and quizzes
+            </div>
+          </Card>
+
+          <Card className="stat-card">
+            <div className="stat-label">
+              <Target size={17} />
+              Roadmap progress
+            </div>
+
+            <div className="stat-value">{progress}%</div>
+
+            <ProgressBar
+              aria-label="Roadmap progress"
+              value={progress}
+              className="dashboard-progress"
+            >
+              <ProgressBar.Track>
+                <ProgressBar.Fill />
+              </ProgressBar.Track>
+            </ProgressBar>
+          </Card>
+
+          <Card className="stat-card">
+            <div className="stat-label">
+              <Clock3 size={17} />
+              Current focus
+            </div>
+
+            <div className="stat-value" style={{ fontSize: 22 }}>
+              {currentModule?.title ?? "All current stages verified"}
+            </div>
+
+            <div className="stat-note">
+              {currentModule
+                ? `${currentModule.estimatedDuration} estimated`
+                : "Review the roadmap or reassess your skills."}
+            </div>
+          </Card>
+        </div>
+
+        <div className="dashboard-grid">
+          <Card className="panel">
+            <div className="panel-heading">
+              <h2>
+                {currentModule
+                  ? "Continue your journey"
+                  : "Review your learning path"}
+              </h2>
+
+              <Compass size={20} color="#5b4ce2" />
+            </div>
+
+            {currentModule ? (
+              <div className="next-step">
+                <span className="status-pill current">READY TO LEARN</span>
+
+                <h3>{currentModule.title}</h3>
+
+                <p>{currentModule.description}</p>
+
+                <div className="module-meta" style={{ marginBottom: 18 }}>
+                  <span>
+                    <Clock3
+                      size={14}
+                      style={{
+                        display: "inline",
+                        verticalAlign: "middle",
+                      }}
+                    />{" "}
+                    {currentModule.estimatedDuration}
+                  </span>
+
+                  <span>·</span>
+
+                  <span>{currentModule.skills.length} focus skills</span>
+
+                  {currentModule.totalLessons > 0 && (
+                    <>
+                      <span>·</span>
+                      <span>
+                        <BookOpen
+                          size={14}
+                          style={{
+                            display: "inline",
+                            verticalAlign: "middle",
+                          }}
+                        />{" "}
+                        {currentModule.completedLessons}/
+                        {currentModule.totalLessons} lessons
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                <Link
+                  href={`/roadmap/${currentModule.moduleKey}`}
+                  className="button-primary"
+                >
+                  View current module
+                  <ArrowRight size={17} />
+                </Link>
+              </div>
+            ) : (
+              <div className="next-step">
+                <h3>Your current stages are verified.</h3>
+
+                <p>
+                  You can review the full roadmap or reassess your skills to
+                  check your starting point again.
+                </p>
+
+                <div className="dashboard-actions">
+                  <Link href="/roadmap" className="button-primary">
+                    Review roadmap
+                  </Link>
+
+                  <Link
+                    href="/onboarding/assessment"
+                    className="button-secondary"
+                  >
+                    Reassess skills
+                  </Link>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          <Card className="panel">
+            <div className="panel-heading">
+              <h2>Verified stages</h2>
+            </div>
+
+            {verifiedModules.length > 0 ? (
+              <div className="module-list">
+                {[...verifiedModules]
+                  .reverse()
+                  .slice(0, 4)
+                  .map((item) => (
+                    <Link
+                      href={`/roadmap/${item.moduleKey}`}
+                      className="resource-card"
+                      key={item.id}
+                    >
+                      <div className="step-icon">
+                        <CheckCircle2 size={19} />
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <h3>{item.title}</h3>
+
+                        <p>Verified through coursework or assessment</p>
+                      </div>
+
+                      <ArrowRight size={16} color="#858ba0" />
+                    </Link>
+                  ))}
+              </div>
+            ) : (
+              <p className="stat-note">
+                No stages have been verified yet. Start with your current focus
+                or complete the lessons in stage 1.
+              </p>
+            )}
+          </Card>
+        </div>
+
+        <p className="stat-note" style={{ marginTop: 22 }}>
+          Your learning path is powered by the published Masarak roadmap.
+        </p>
+      </div>
+    );
+  }
+
+  // Fallback if no published roadmap or legacy mode
   if (!hydrated) {
     return (
       <div className="page-container">
@@ -29,13 +265,8 @@ export default function DashboardClient() {
   const verifiedModules = curriculum.filter((item) =>
     completedModuleIds.includes(item.id),
   );
-
   const verifiedCount = verifiedModules.length;
-
-  const progress = Math.round(
-    (verifiedCount / curriculum.length) * 100,
-  );
-
+  const progress = Math.round((verifiedCount / curriculum.length) * 100);
   const currentModule = curriculum.find(
     (item) => getStatus(item.id) === "current",
   );
@@ -45,9 +276,7 @@ export default function DashboardClient() {
       <div className="dashboard-welcome">
         <div>
           <span className="eyebrow">Student workspace</span>
-
           <h1>Your journey, at a glance.</h1>
-
           <p>
             See where you are, review your progress, and decide what to do next.
           </p>
@@ -59,19 +288,13 @@ export default function DashboardClient() {
               Open roadmap <ArrowRight size={17} />
             </Link>
 
-            <Link
-              href="/onboarding/assessment"
-              className="button-secondary"
-            >
+            <Link href="/onboarding/assessment" className="button-secondary">
               <ClipboardCheck size={17} />
               Assess my current skills
             </Link>
           </div>
 
-          <Link
-            href="/onboarding/assessment"
-            className="button-secondary"
-          >
+          <Link href="/onboarding/assessment" className="button-secondary">
             Reassess skills
           </Link>
         </div>
@@ -151,18 +374,13 @@ export default function DashboardClient() {
 
           {currentModule ? (
             <div className="next-step">
-              <span className="status-pill current">
-                READY TO LEARN
-              </span>
+              <span className="status-pill current">READY TO LEARN</span>
 
               <h3>{currentModule.title}</h3>
 
               <p>{currentModule.description}</p>
 
-              <div
-                className="module-meta"
-                style={{ marginBottom: 18 }}
-              >
+              <div className="module-meta" style={{ marginBottom: 18 }}>
                 <span>
                   <Clock3
                     size={14}
@@ -176,9 +394,7 @@ export default function DashboardClient() {
 
                 <span>·</span>
 
-                <span>
-                  {currentModule.skills.length} focus skills
-                </span>
+                <span>{currentModule.skills.length} focus skills</span>
               </div>
 
               <Link
@@ -252,11 +468,6 @@ export default function DashboardClient() {
           )}
         </Card>
       </div>
-
-      <p className="stat-note" style={{ marginTop: 22 }}>
-        The current roadmap and its assessment content are provisional and will
-        be customized for Masarak.
-      </p>
     </div>
   );
 }

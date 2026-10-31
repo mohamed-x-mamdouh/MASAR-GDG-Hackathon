@@ -1,21 +1,60 @@
 import Link from "next/link";
 import { connection } from "next/server";
 import { redirect } from "next/navigation";
-import { ArrowLeft, Plus, Save } from "lucide-react";
+import { ArrowLeft, CopyPlus, Plus, Save, Send } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import styles from "./roadmap-builder.module.css";
 
 import {
   createRoadmapModuleAction,
   updateRoadmapModuleAction,
+  archiveRoadmapModuleAction,
   createRoadmapTopicAction,
   updateRoadmapTopicAction,
   archiveRoadmapTopicAction,
+  publishRoadmapVersionAction,
+  createRoadmapDraftFromPublishedAction,
 } from "@/app/admin/roadmap/actions";
 
-export default async function RoadmapAdminPage() {
+type PageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function Feedback({ success, error }: { success?: string; error?: string }) {
+  if (success) {
+    return (
+      <div
+        role="status"
+        className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+      >
+        {success}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        role="alert"
+        className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
+      >
+        {error}
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export default async function RoadmapAdminPage({ searchParams }: PageProps) {
   await connection();
+  const query = await searchParams;
+  const successMessage =
+    typeof query.success === "string" ? query.success : undefined;
+  const errorMessage =
+    typeof query.error === "string" ? query.error : undefined;
 
   const supabase = await createClient();
 
@@ -77,18 +116,49 @@ export default async function RoadmapAdminPage() {
     (version) => version.status === "draft",
   );
 
+  const publishedVersion = (versions ?? []).find(
+    (version) => version.status === "published",
+  );
+
   if (!draftVersion) {
     return (
       <div className="page-container">
-        <Link href="/admin" className="text-link">
+        <Link href="/admin" className="text-link inline-flex items-center gap-2">
           <ArrowLeft size={16} /> Back to Admin
         </Link>
-        <section className="panel mt-5 p-6">
+        <div className="mt-5">
+          <Feedback success={successMessage} error={errorMessage} />
+        </div>
+        <section className="panel p-6">
           <h1 className="text-2xl font-bold">No editable draft</h1>
           <p className="stat-note mt-2">
-            There is no draft version available for editing. Published roadmaps
-            are protected from direct changes.
+            There is no draft version currently open for editing. Published roadmaps
+            are protected from direct modifications.
           </p>
+          {publishedVersion && (
+            <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+              <div>
+                <span className="font-semibold">Live Version:</span> Version{" "}
+                {publishedVersion.version_number} is currently published and active for students.
+              </div>
+              <form
+                action={createRoadmapDraftFromPublishedAction}
+                className="mt-4"
+              >
+                <input
+                  type="hidden"
+                  name="sourceVersionId"
+                  value={publishedVersion.id}
+                />
+                <button
+                  type="submit"
+                  className="button-primary inline-flex items-center gap-2"
+                >
+                  <CopyPlus size={16} /> Create New Draft from Published Version
+                </button>
+              </form>
+            </div>
+          )}
         </section>
       </div>
     );
@@ -169,33 +239,60 @@ export default async function RoadmapAdminPage() {
     Math.max(0, ...moduleList.map((module) => module.sort_order)) + 1;
 
   return (
-    <div className="page-container">
+    <div className={`page-container ${styles.builder}`}>
       <Link href="/admin" className="text-link inline-flex items-center gap-2">
         <ArrowLeft size={16} /> Back to Admin
       </Link>
 
-      <header className="page-heading mt-5">
-        <span className="eyebrow">Roadmap Content Management</span>
-        <h1>{track.title}</h1>
-        <p>{track.description}</p>
-        <div className="module-meta mt-3">
-          <span>Draft version {draftVersion.version_number}</span>
-          <span>·</span>
-          <span>{moduleList.length} modules</span>
-          <span>·</span>
-          <span>{topicList.length} topics</span>
+      <header
+        className={`page-heading mt-5 flex flex-wrap items-start justify-between gap-4 ${styles.header}`}
+      >
+        <div className={styles.headerCopy}>
+          <span className="eyebrow">Roadmap Content Management</span>
+          <h1>{track.title}</h1>
+          <p>{track.description}</p>
+          <div className="module-meta mt-3">
+            <span>Draft version {draftVersion.version_number}</span>
+            <span>·</span>
+            <span>{moduleList.length} modules</span>
+            <span>·</span>
+            <span>{topicList.length} topics</span>
+          </div>
         </div>
+
+        <form
+          action={publishRoadmapVersionAction}
+          className={`flex items-center gap-3 ${styles.publishForm}`}
+        >
+          <input type="hidden" name="versionId" value={draftVersion.id} />
+          <button
+            type="submit"
+            className="button-primary inline-flex items-center gap-2"
+            title="Publish this draft version so students can access it"
+          >
+            <Send size={16} /> Publish Draft v{draftVersion.version_number}
+          </button>
+        </form>
       </header>
 
-      <section className="panel p-5 mb-7">
-        <h2 className="text-xl font-semibold">Add a Module</h2>
-        <p className="stat-note mt-1">
-          Create a new stage in this roadmap version.
-        </p>
+      <div className={styles.feedback}>
+        <Feedback success={successMessage} error={errorMessage} />
+      </div>
+
+      <section className={`panel p-5 mb-7 ${styles.createPanel}`}>
+        <div className={styles.createHeading}>
+          <div>
+            <h2 className="text-xl font-semibold">Add a Module</h2>
+            <p className="stat-note mt-1">
+              Create a new stage in this roadmap version.
+            </p>
+          </div>
+          <span className="status-pill">Draft workspace</span>
+        </div>
 
         <form
           action={createRoadmapModuleAction}
-          className="admin-form-grid mt-5"
+          className={`admin-form-grid mt-5 ${styles.form}`}
         >
           <input type="hidden" name="versionId" value={draftVersion.id} />
 
@@ -261,11 +358,13 @@ export default async function RoadmapAdminPage() {
               multiple
               size={Math.min(Math.max(moduleList.length, 3), 7)}
             >
-              {moduleList.map((module) => (
-                <option key={module.id} value={module.id}>
-                  {module.sort_order}. {module.title}
-                </option>
-              ))}
+              {moduleList
+                .filter((module) => module.is_active)
+                .map((module) => (
+                  <option key={module.id} value={module.id}>
+                    {module.sort_order}. {module.title}
+                  </option>
+                ))}
             </select>
             <small className="stat-note">
               Leave empty if this is a starting module.
@@ -283,17 +382,20 @@ export default async function RoadmapAdminPage() {
         <span className="stat-note">{moduleList.length} modules</span>
       </div>
 
-      <div className="space-y-6">
+      <div className={`space-y-6 ${styles.moduleList}`}>
         {moduleList.map((module) => {
           const moduleTopics = topicsByModule.get(module.id) ?? [];
           const selectedPrerequisites =
             prerequisitesByModule.get(module.id) ?? [];
 
           return (
-            <section className="panel p-5" key={module.id}>
-              <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+            <section
+              className={`panel p-5 ${styles.moduleCard}`}
+              key={module.id}
+            >
+              <div className={`flex flex-wrap items-start justify-between gap-3 mb-5 ${styles.moduleHeader}`}>
                 <div>
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-xs text-gray-500 ${styles.moduleKey}`}>
                     Module {module.sort_order} · {module.module_key}
                   </p>
                   <h2 className="text-xl font-bold">{module.title}</h2>
@@ -302,30 +404,46 @@ export default async function RoadmapAdminPage() {
                 <span
                   className={`topic-status-badge ${
                     module.is_active
-                      ? "screening_passed"
-                      : "self_reported_unknown"
+                      ? `screening_passed ${styles.statusBadge}`
+                      : `self_reported_unknown ${styles.statusBadge} ${styles.statusBadgeArchived}`
                   }`}
                 >
                   {module.is_active ? "Active" : "Archived"}
                 </span>
               </div>
 
-              <div className="mt-3">
+              <div className={`mt-3 flex flex-wrap items-center gap-3 ${styles.actionBar}`}>
                 <Link
                   href={`/admin/roadmap/modules/${module.id}`}
                   className="button-secondary inline-flex items-center gap-2"
                 >
                   Manage Module Resources
                 </Link>
+
+                {module.is_active && (
+                  <form action={archiveRoadmapModuleAction}>
+                    <input
+                      type="hidden"
+                      name="versionId"
+                      value={draftVersion.id}
+                    />
+                    <input type="hidden" name="moduleId" value={module.id} />
+                    <button type="submit" className="button-secondary">
+                      Archive module
+                    </button>
+                  </form>
+                )}
               </div>
-              <details>
-                <summary className="cursor-pointer font-semibold">
-                  Edit module details and prerequisites
-                </summary>
+
+              {module.is_active ? (
+                <details className={styles.disclosure}>
+                  <summary className="cursor-pointer font-semibold">
+                    Edit module details and prerequisites
+                  </summary>
 
                 <form
                   action={updateRoadmapModuleAction}
-                  className="admin-form-grid mt-5"
+                  className={`admin-form-grid mt-5 ${styles.form}`}
                 >
                   <input
                     type="hidden"
@@ -405,7 +523,9 @@ export default async function RoadmapAdminPage() {
                       defaultValue={selectedPrerequisites}
                     >
                       {moduleList
-                        .filter((item) => item.id !== module.id)
+                        .filter(
+                          (item) => item.id !== module.id && item.is_active,
+                        )
                         .map((item) => (
                           <option key={item.id} value={item.id}>
                             {item.sort_order}. {item.title}
@@ -422,9 +542,14 @@ export default async function RoadmapAdminPage() {
                   </button>
                 </form>
               </details>
+              ) : (
+                <p className="stat-note mt-3">
+                  This module is archived (read-only).
+                </p>
+              )}
 
-              <div className="mt-6 border-t border-gray-200 pt-5">
-                <div className="flex items-center justify-between gap-3 mb-4">
+              <div className={styles.topicArea}>
+                <div className={`flex items-center justify-between gap-3 mb-4 ${styles.topicHeading}`}>
                   <h3 className="font-semibold">Topics</h3>
                   <span className="stat-note">{moduleTopics.length} total</span>
                 </div>
@@ -432,10 +557,10 @@ export default async function RoadmapAdminPage() {
                 <div className="space-y-4">
                   {moduleTopics.map((topic) => (
                     <article
-                      className="rounded-lg border border-gray-200 p-4"
+                      className={`rounded-lg border border-gray-200 p-4 ${styles.topicCard}`}
                       key={topic.id}
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <div className={`flex flex-wrap items-center justify-between gap-2 mb-3 ${styles.topicHeader}`}>
                         <div>
                           <p className="text-xs text-gray-500">
                             Topic {topic.sort_order} · {topic.slug}
@@ -453,7 +578,7 @@ export default async function RoadmapAdminPage() {
                         </span>
                       </div>
 
-                      <div className="mb-3">
+                      <div className={styles.topicActions}>
                         <Link
                           href={`/admin/roadmap/topics/${topic.id}`}
                           className="button-secondary"
@@ -462,14 +587,14 @@ export default async function RoadmapAdminPage() {
                         </Link>
                       </div>
 
-                      <details>
+                      <details className={styles.disclosure}>
                         <summary className="cursor-pointer text-sm font-semibold">
                           Edit topic
                         </summary>
 
                         <form
                           action={updateRoadmapTopicAction}
-                          className="admin-form-grid mt-4"
+                          className={`admin-form-grid mt-4 ${styles.form}`}
                         >
                           <input
                             type="hidden"
@@ -559,9 +684,9 @@ export default async function RoadmapAdminPage() {
                       </details>
 
                       {topic.is_active && (
-                        <form
+                    <form
                           action={archiveRoadmapTopicAction}
-                          className="mt-3"
+                      className="mt-3 flex justify-end"
                         >
                           <input
                             type="hidden"
@@ -586,112 +711,114 @@ export default async function RoadmapAdminPage() {
                   )}
                 </div>
 
-                <details className="mt-5">
-                  <summary className="cursor-pointer font-semibold">
-                    <Plus size={15} className="inline mr-1" />
-                    Add a Topic
-                  </summary>
+                {module.is_active ? (
+                  <details className={`mt-5 ${styles.addTopic}`}>
+                    <summary className="cursor-pointer font-semibold">
+                      <Plus size={15} className="inline mr-1" />
+                      Add a Topic
+                    </summary>
 
-                  <form
-                    action={createRoadmapTopicAction}
-                    className="admin-form-grid mt-4"
-                  >
-                    <input
-                      type="hidden"
-                      name="versionId"
-                      value={draftVersion.id}
-                    />
-                    <input type="hidden" name="moduleId" value={module.id} />
-
-                    <label className="admin-field">
-                      <span>Topic slug</span>
-                      <input
-                        name="slug"
-                        required
-                        pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                        placeholder="e.g. react-hooks"
-                      />
-                    </label>
-
-                    <label className="admin-field">
-                      <span>Topic title</span>
-                      <input
-                        name="title"
-                        required
-                        placeholder="e.g. React Hooks"
-                      />
-                    </label>
-
-                    <label className="admin-field">
-                      <span>Order</span>
-                      <input
-                        name="sortOrder"
-                        type="number"
-                        min="1"
-                        required
-                        defaultValue={
-                          Math.max(
-                            0,
-                            ...moduleTopics.map((item) => item.sort_order),
-                          ) + 1
-                        }
-                      />
-                    </label>
-
-                    <label className="admin-field">
-                      <span>Estimated duration</span>
-                      <input
-                        name="estimatedDuration"
-                        placeholder="e.g. 3 hours"
-                      />
-                    </label>
-
-                    <label className="admin-field">
-                      <span>Passing score (%)</span>
-                      <input
-                        name="passPercentage"
-                        type="number"
-                        min="0"
-                        max="100"
-                        defaultValue={70}
-                      />
-                    </label>
-
-                    <label className="admin-field">
-                      <span>Questions per attempt</span>
-                      <input
-                        name="questionsPerAttempt"
-                        type="number"
-                        min="1"
-                        defaultValue={5}
-                      />
-                    </label>
-
-                    <label className="admin-field admin-field-wide">
-                      <span>Description</span>
-                      <textarea name="description" rows={2} />
-                    </label>
-
-                    <label className="admin-field admin-field-wide">
-                      <span>Learning objectives (one per line)</span>
-                      <textarea name="objectives" rows={3} />
-                    </label>
-
-                    <button
-                      type="submit"
-                      className="button-primary admin-submit"
+                    <form
+                      action={createRoadmapTopicAction}
+                      className={`admin-form-grid mt-4 ${styles.form}`}
                     >
-                      <Plus size={16} /> Add Topic
-                    </button>
-                  </form>
-                </details>
+                      <input
+                        type="hidden"
+                        name="versionId"
+                        value={draftVersion.id}
+                      />
+                      <input type="hidden" name="moduleId" value={module.id} />
+
+                      <label className="admin-field">
+                        <span>Topic slug</span>
+                        <input
+                          name="slug"
+                          required
+                          pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                          placeholder="e.g. react-hooks"
+                        />
+                      </label>
+
+                      <label className="admin-field">
+                        <span>Topic title</span>
+                        <input
+                          name="title"
+                          required
+                          placeholder="e.g. React Hooks"
+                        />
+                      </label>
+
+                      <label className="admin-field">
+                        <span>Order</span>
+                        <input
+                          name="sortOrder"
+                          type="number"
+                          min="1"
+                          required
+                          defaultValue={
+                            Math.max(
+                              0,
+                              ...moduleTopics.map((item) => item.sort_order),
+                            ) + 1
+                          }
+                        />
+                      </label>
+
+                      <label className="admin-field">
+                        <span>Estimated duration</span>
+                        <input
+                          name="estimatedDuration"
+                          placeholder="e.g. 3 hours"
+                        />
+                      </label>
+
+                      <label className="admin-field">
+                        <span>Passing score (%)</span>
+                        <input
+                          name="passPercentage"
+                          type="number"
+                          min="0"
+                          max="100"
+                          defaultValue={70}
+                        />
+                      </label>
+
+                      <label className="admin-field">
+                        <span>Questions per attempt</span>
+                        <input
+                          name="questionsPerAttempt"
+                          type="number"
+                          min="1"
+                          defaultValue={5}
+                        />
+                      </label>
+
+                      <label className="admin-field admin-field-wide">
+                        <span>Description</span>
+                        <textarea name="description" rows={2} />
+                      </label>
+
+                      <label className="admin-field admin-field-wide">
+                        <span>Learning objectives (one per line)</span>
+                        <textarea name="objectives" rows={3} />
+                      </label>
+
+                      <button
+                        type="submit"
+                        className="button-primary admin-submit"
+                      >
+                        <Plus size={16} /> Add Topic
+                      </button>
+                    </form>
+                  </details>
+                ) : null}
               </div>
             </section>
           );
         })}
       </div>
 
-      <section className="panel p-5 mt-7">
+      <section className={`panel p-5 mt-7 ${styles.aboutDraft}`}>
         <h2 className="font-semibold">About this draft</h2>
         <p className="stat-note mt-2">
           Changes here affect draft version {draftVersion.version_number}

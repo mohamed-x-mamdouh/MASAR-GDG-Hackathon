@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import DashboardClient from "@/components/dashboard-client";
 import { createClient } from "@/lib/supabase/server";
-import { connection } from "next/server";
+import { getStudentRoadmapData } from "@/lib/roadmap-student";
 
 export const metadata: Metadata = {
   title: "Student Dashboard",
@@ -30,5 +31,7 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
-  return <DashboardClient />;
+  const roadmapData = await getStudentRoadmapData(user.id);
+
+  return <DashboardClient roadmapData={roadmapData} />;
 }

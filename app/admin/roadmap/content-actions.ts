@@ -22,6 +22,14 @@ type ResourceType = (typeof RESOURCE_TYPES)[number];
 type ResourceLanguage = (typeof RESOURCE_LANGUAGES)[number];
 type AdminClient = ReturnType<typeof createAdminClient>;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+
+function requireUuid(value: string, label: string) {
+  if (!UUID_PATTERN.test(value)) {
+    throw new Error(`${label} is invalid.`);
+  }
+}
+
 async function requireAdmin() {
   const supabase = await createClient();
   const {
@@ -132,7 +140,7 @@ function getFriendlyDatabaseError(error: { code?: string; message?: string }, fa
 }
 
 async function requireDraftVersion(admin: AdminClient, versionId: string) {
-  if (!versionId) throw new Error("Missing roadmap version.");
+  requireUuid(versionId, "Roadmap version ID");
 
   const { data: version, error } = await admin
     .from("roadmap_versions")
@@ -163,6 +171,9 @@ async function requireTopicInDraft(
   topicId: string,
   versionId: string,
 ) {
+  requireUuid(topicId, "Topic ID");
+  requireUuid(versionId, "Roadmap version ID");
+
   const { data: topic, error } = await admin
     .from("roadmap_topics")
     .select("id, roadmap_version_id, roadmap_module_id, title, is_active")
@@ -192,6 +203,8 @@ async function requireLessonInDraft(
   topicId: string,
   versionId: string,
 ) {
+  requireUuid(lessonId, "Lesson ID");
+
   const { data: lesson, error } = await admin
     .from("learning_lessons")
     .select("id, roadmap_topic_id, roadmap_version_id, title, is_active")
@@ -211,6 +224,8 @@ async function requireResourceInDraft(
   lessonId: string,
   versionId: string,
 ) {
+  requireUuid(resourceId, "Resource ID");
+
   const { data: resource, error } = await admin
     .from("learning_resources")
     .select("id, is_active")
@@ -320,7 +335,8 @@ export async function updateLessonAction(formData: FormData) {
       })
       .eq("id", lessonId)
       .eq("roadmap_topic_id", topicId)
-      .eq("roadmap_version_id", versionId);
+      .eq("roadmap_version_id", versionId)
+      .eq("is_active", true);
 
     if (error) {
       throw new Error(getFriendlyDatabaseError(error, "Couldn't update the lesson."));
@@ -453,7 +469,8 @@ export async function updateResourceAction(formData: FormData) {
       })
       .eq("id", resourceId)
       .eq("lesson_id", lessonId)
-      .eq("roadmap_version_id", versionId);
+      .eq("roadmap_version_id", versionId)
+      .eq("is_active", true);
 
     if (error) {
       throw new Error(getFriendlyDatabaseError(error, "Couldn't update the resource."));

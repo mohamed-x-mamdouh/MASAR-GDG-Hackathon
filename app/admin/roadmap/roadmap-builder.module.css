@@ -1,0 +1,340 @@
+.builder {
+  color: #1f2937;
+}
+
+.builder :global(.text-link) {
+  color: #64748b;
+  font-size: 0.875rem;
+  font-weight: 700;
+  transition: color 160ms ease;
+}
+
+.builder :global(.text-link:hover) {
+  color: var(--primary);
+}
+
+.header {
+  align-items: stretch;
+  margin-bottom: 1.75rem;
+  padding: 1.5rem;
+  border: 1px solid #e3e7ef;
+  border-radius: 1.25rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fafaff 100%);
+  box-shadow: 0 10px 30px rgb(30 41 82 / 5%);
+}
+
+.headerCopy {
+  min-width: 0;
+}
+
+.headerCopy :global(h1) {
+  margin: 0.35rem 0 0.55rem;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.headerCopy :global(p) {
+  max-width: 42rem;
+  margin: 0;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.publishForm {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-width: min(100%, 15rem);
+}
+
+.publishForm :global(.button-primary) {
+  width: 100%;
+  min-height: 48px;
+  box-shadow: 0 8px 18px rgb(91 76 226 / 18%);
+}
+
+.feedback {
+  margin-bottom: 1.5rem;
+}
+
+.createPanel {
+  padding: 1.5rem;
+  border-color: #dfe3f0;
+  box-shadow: 0 8px 24px rgb(30 41 82 / 4%);
+}
+
+.createHeading,
+.sectionHeading,
+.topicHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.createHeading :global(h2),
+.sectionHeading :global(h2) {
+  margin: 0;
+  color: #172033;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.createHeading :global(p) {
+  margin: 0.25rem 0 0;
+}
+
+.form :global(.admin-field) {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.form :global(.admin-field input),
+.form :global(.admin-field textarea),
+.form :global(.admin-field select) {
+  width: 100%;
+  border: 1px solid #d9deea;
+  border-radius: 0.7rem;
+  background: #ffffff;
+  color: #172033;
+  font-size: 0.9rem;
+  font-weight: 400;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.form :global(.admin-field input),
+.form :global(.admin-field textarea) {
+  padding: 0.65rem 0.75rem;
+}
+
+.form :global(.admin-field input) {
+  min-height: 2.75rem;
+}
+
+.form :global(.admin-field textarea) {
+  min-height: 5rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.form :global(.admin-field select) {
+  min-height: 7.5rem;
+  padding: 0.4rem;
+}
+
+.form :global(.admin-field input:focus),
+.form :global(.admin-field textarea:focus),
+.form :global(.admin-field select:focus) {
+  border-color: #8d82f0;
+  box-shadow: 0 0 0 3px rgb(91 76 226 / 12%);
+}
+
+.form :global(.admin-field-wide) {
+  grid-column: 1 / -1;
+}
+
+.form :global(.admin-field small) {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.form :global(.admin-submit) {
+  justify-self: start;
+  min-height: 42px;
+}
+
+.moduleList {
+  gap: 1.25rem;
+}
+
+.moduleCard {
+  overflow: hidden;
+  padding: 0;
+  border-color: #dfe3ed;
+  box-shadow: 0 8px 24px rgb(30 41 82 / 4%);
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.5rem;
+  border-bottom: 1px solid #edf0f5;
+  background: #fbfbfe;
+}
+
+.moduleHeader :global(h2) {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
+}
+
+.moduleHeader :global(p) {
+  margin: 0;
+}
+
+.moduleKey {
+  color: #7c3aed;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.statusBadge {
+  flex-shrink: 0;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: #ecfdf5;
+  color: #047857;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.statusBadgeArchived {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.actionBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #edf0f5;
+  background: #ffffff;
+}
+
+.actionBar :global(.button-secondary) {
+  min-height: 38px;
+  padding-inline: 0.8rem;
+  font-size: 0.8rem;
+}
+
+.disclosure {
+  margin: 0 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.disclosure:last-child {
+  border-bottom: 0;
+}
+
+.disclosure :global(summary) {
+  cursor: pointer;
+  color: #334155;
+  font-size: 0.87rem;
+  font-weight: 800;
+  list-style-position: outside;
+}
+
+.disclosure :global(summary)::marker {
+  color: var(--primary);
+}
+
+.topicArea {
+  padding: 1.35rem 1.5rem 1.5rem;
+  background: #fafbfe;
+}
+
+.topicHeading {
+  align-items: center;
+  margin-bottom: 0.9rem;
+}
+
+.topicHeading :global(h3) {
+  margin: 0;
+  color: #172033;
+  font-size: 1rem;
+}
+
+.topicCard {
+  padding: 1rem;
+  border-color: #e2e7f0;
+  background: #ffffff;
+  box-shadow: 0 3px 10px rgb(30 41 82 / 3%);
+}
+
+.topicCard :global(h4) {
+  margin: 0.15rem 0 0;
+  color: #172033;
+  font-size: 0.95rem;
+}
+
+.topicHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
+}
+
+.topicActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.topicActions :global(.button-secondary),
+.topicCard :global(form > .button-secondary) {
+  min-height: 36px;
+  padding-inline: 0.75rem;
+  font-size: 0.78rem;
+}
+
+.addTopic {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #d9deea;
+}
+
+.addTopic :global(summary) {
+  color: var(--primary);
+}
+
+.aboutDraft {
+  border-color: #dfe3f0;
+  background: #f7f6ff;
+}
+
+.aboutDraft :global(h2) {
+  margin: 0;
+  color: #30256d;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 720px) {
+  .header {
+    padding: 1.1rem;
+  }
+
+  .publishForm {
+    align-items: stretch;
+    justify-content: stretch;
+  }
+
+  .moduleHeader,
+  .actionBar,
+  .topicArea {
+    padding-inline: 1rem;
+  }
+
+  .disclosure {
+    margin-inline: 1rem;
+  }
+
+  .topicHeader {
+    flex-direction: column;
+  }
+}

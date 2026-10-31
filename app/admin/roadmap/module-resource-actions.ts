@@ -20,6 +20,14 @@ type ResourceType = (typeof RESOURCE_TYPES)[number];
 type ResourceLanguage = (typeof RESOURCE_LANGUAGES)[number];
 type AdminClient = ReturnType<typeof createAdminClient>;
 
+const UUID_PATTERN = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i;
+
+function requireUuid(value: string, label: string) {
+  if (!UUID_PATTERN.test(value)) {
+    throw new Error(`${label} is invalid.`);
+  }
+}
+
 async function requireAdmin() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -107,7 +115,7 @@ function friendlyError(error: { code?: string; message?: string }, fallback: str
 }
 
 async function requireDraftFullStackVersion(admin: AdminClient, versionId: string) {
-  if (!versionId) throw new Error("Missing roadmap version.");
+  requireUuid(versionId, "Roadmap version ID");
 
   const { data: version, error } = await admin
     .from("roadmap_versions")
@@ -132,6 +140,8 @@ async function requireDraftFullStackVersion(admin: AdminClient, versionId: strin
 }
 
 async function requireActiveModule(admin: AdminClient, moduleId: string, versionId: string) {
+  requireUuid(moduleId, "Module ID");
+
   const { data: module, error } = await admin
     .from("roadmap_modules")
     .select("id, title, is_active")
@@ -150,6 +160,8 @@ async function requireActiveModuleResource(
   moduleId: string,
   versionId: string,
 ) {
+  requireUuid(resourceId, "Resource ID");
+
   const { data: resource, error } = await admin
     .from("roadmap_module_resources")
     .select("id, is_active")
@@ -274,7 +286,8 @@ export async function updateModuleResourceAction(formData: FormData) {
       })
       .eq("id", resourceId)
       .eq("roadmap_module_id", moduleId)
-      .eq("roadmap_version_id", versionId);
+      .eq("roadmap_version_id", versionId)
+      .eq("is_active", true);
 
     if (error) throw new Error(friendlyError(error, "Couldn't update the module resource."));
   }, "Module resource updated successfully.");

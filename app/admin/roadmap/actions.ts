@@ -668,3 +668,151 @@ export async function archiveRoadmapTopicAction(formData: FormData) {
     "Topic and its lessons/resources were archived successfully.",
   );
 }
+
+// ======================================================
+// VERSION ACTIONS
+// ======================================================
+
+export async function publishRoadmapVersionAction(formData: FormData) {
+  await requireAdmin();
+
+  const admin = createAdminClient();
+
+  try {
+    const versionId = getText(formData, "versionId");
+    await requireDraftFullStackVersion(admin, versionId);
+
+    // Require at least one active module before publishing
+    const { count: moduleCount, error: countError } = await admin
+      .from("roadmap_modules")
+      .select("id", { count: "exact", head: true })
+      .eq("roadmap_version_id", versionId)
+      .eq("is_active", true);
+
+    if (countError) throw countError;
+
+    if (!moduleCount || moduleCount === 0) {
+      throw new Error(
+        "Cannot publish an empty roadmap. Add at least one active module first.",
+      );
+    }
+
+    const { data: version, error: versionError } = await admin
+      .from("roadmap_versions")
+      .select("track_id, version_number")
+      .eq("id", versionId)
+      .maybeSingle();
+
+    if (versionError || !version) {
+      throw new Error("Roadmap version not found.");
+    }
+
+    // Archive any currently published version for this track
+    const { error: archiveError } = await admin
+      .from("roadmap_versions")
+      .update({
+        status: "archived",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("track_id", version.track_id)
+      .eq("status", "published")
+      .neq("id", versionId);
+
+    if (archiveError) throw archiveError;
+
+    // Publish the draft version
+    const now = new Date().toISOString();
+    const { error: publishError } = await admin
+      .from("roadmap_versions")
+      .update({
+        status: "published",
+        published_at: now,
+        updated_at: now,
+      })
+      .eq("id", versionId);
+
+    if (publishError) throw publishError;
+  } catch (error) {
+    console.error("publishRoadmapVersionAction failed:", error);
+
+    redirectWithFeedback(
+      "/admin/roadmap",
+      "error",
+      getActionError(error, "Failed to publish roadmap version."),
+    );
+  }
+
+  revalidatePath("/admin/roadmap");
+  revalidatePath("/roadmap");
+  revalidatePath("/dashboard");
+
+  redirectWithFeedback(
+    "/admin/roadmap",
+    "success",
+    "Roadmap version published successfully! Students can now access this curriculum.",
+  );
+}
+
+export async function createRoadmapDraftFromPublishedAction(formData: FormData) {
+  await requireAdmin();
+
+  const admin = createAdminClient();
+
+  try {
+    const sourceVersionId = getText(formData, "sourceVersionId");
+    requireUuid(sourceVersionId, "Published roadmap version ID");
+
+    const { data: sourceVersion, error: sourceError } = await admin
+      .from("roadmap_versions")
+      .select("id, track_id, version_number, status")
+      .eq("id", sourceVersionId)
+      .maybeSingle();
+
+    if (sourceError || !sourceVersion) {
+      throw new Error("Published roadmap version not found.");
+    }
+
+    if (sourceVersion.status !== "published") {
+      throw new Error("Only the currently published roadmap can be copied.");
+    }
+
+    const { data: track, error: trackError } = await admin
+      .from("learning_tracks")
+      .select("slug")
+      .eq("id", sourceVersion.track_id)
+      .maybeSingle();
+
+    if (trackError || track?.slug !== FULL_STACK_TRACK_SLUG) {
+      throw new Error(
+        "This admin builder only supports the Full-Stack Development track.",
+      );
+    }
+
+    const { data: newVersionId, error: cloneError } = await admin.rpc(
+      "clone_published_roadmap_version",
+      { p_source_version_id: sourceVersionId },
+    );
+
+    if (cloneError || typeof newVersionId !== "string") {
+      throw new Error(
+        getActionError(cloneError, "Couldn't create a draft from the published roadmap."),
+      );
+    }
+  } catch (error) {
+    console.error("createRoadmapDraftFromPublishedAction failed:", error);
+
+    redirectWithFeedback(
+      "/admin/roadmap",
+      "error",
+      getActionError(error, "Couldn't create a draft from the published roadmap."),
+    );
+  }
+
+  revalidatePath("/admin/roadmap");
+
+  redirectWithFeedback(
+    "/admin/roadmap",
+    "success",
+    "New draft created from the published roadmap. You can now edit it safely.",
+  );
+}

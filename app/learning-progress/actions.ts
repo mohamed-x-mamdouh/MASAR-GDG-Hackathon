@@ -250,6 +250,53 @@ export async function submitModuleQuizAction(
       throw new Error("The saved quiz result is incomplete.");
     }
 
+    // Keep the versioned roadmap progression in sync with the existing quiz
+    // flow. Dynamic module unlocks read student_module_progress, while this
+    // legacy-compatible quiz RPC writes module_progress.
+    if (result.passed) {
+      const { data: enrollment, error: enrollmentError } = await admin
+        .from("roadmap_enrollments")
+        .select("id, roadmap_version_id")
+        .eq("user_id", user.id)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (enrollmentError) throw enrollmentError;
+
+      if (enrollment) {
+        const { data: dynamicModule, error: dynamicModuleError } = await admin
+          .from("roadmap_modules")
+          .select("id")
+          .eq("roadmap_version_id", enrollment.roadmap_version_id)
+          .eq("module_key", moduleId)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (dynamicModuleError) throw dynamicModuleError;
+
+        if (dynamicModule) {
+          const { error: roadmapProgressError } = await admin
+            .from("student_module_progress")
+            .upsert(
+              {
+                user_id: user.id,
+                enrollment_id: enrollment.id,
+                roadmap_version_id: enrollment.roadmap_version_id,
+                roadmap_module_id: dynamicModule.id,
+                status: "completed",
+                verification_source: "module_quiz",
+                score: result.score,
+                verified_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "enrollment_id,roadmap_module_id" },
+            );
+
+          if (roadmapProgressError) throw roadmapProgressError;
+        }
+      }
+    }
+
     // Reload progress after the transaction has completed.
     const progress = await readUserProgress(user.id);
 

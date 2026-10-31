@@ -22,6 +22,10 @@ type TopicItem = {
   id: string;
   moduleId: string;
   moduleTitle: string;
+  moduleSortOrder: number;
+  sortOrder: number;
+  passPercentage: number;
+  assessmentMapped: boolean;
   title: string;
   description: string;
   questionCount: number;
@@ -29,7 +33,10 @@ type TopicItem = {
 
 type Choice = TopicSelectionInput["selfAssessment"];
 
-type Props = { topics: TopicItem[] };
+type Props = {
+  topics: TopicItem[];
+  unavailableTopics: TopicItem[];
+};
 
 const choiceLabels: Record<Choice, string> = {
   know: "I know this",
@@ -37,7 +44,7 @@ const choiceLabels: Record<Choice, string> = {
   unsure: "I'm not sure",
 };
 
-export default function TopicAssessmentClient({ topics }: Props) {
+export default function TopicAssessmentClient({ topics, unavailableTopics }: Props) {
   const [selections, setSelections] = useState<Record<string, Choice>>({});
   const [attemptId, setAttemptId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<PublicAssessmentQuestion[]>([]);
@@ -134,7 +141,7 @@ export default function TopicAssessmentClient({ topics }: Props) {
       (topic) => topic.status === "needs_learning" || topic.status === "self_reported_unknown",
     ).length;
     const needsReview = report.topics.filter((topic) => topic.status === "needs_review").length;
-    const nextTopic = report.topics.find((topic) => topic.status !== "screening_passed");
+    const nextTopic = report.recommendedStart;
 
     return (
       <div className="topic-assessment-result">
@@ -334,18 +341,11 @@ export default function TopicAssessmentClient({ topics }: Props) {
           <div className="space-y-4">
             {group.topics.map((topic) => {
               const selected = selections[topic.id];
-              const canTest = topic.questionCount >= 2;
               return (
                 <article className="topic-choice-row" key={topic.id}>
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold">{topic.title}</h3>
                     <p className="stat-note">{topic.description}</p>
-                    {!canTest && (
-                      <p className="mt-1 text-xs text-amber-700">
-                        Assessment questions are being prepared for this topic.
-                        You can still mark it as something to learn.
-                      </p>
-                    )}
                   </div>
                   <div className="topic-choice-buttons">
                     {(["know", "unknown", "unsure"] as Choice[]).map((choice) => (
@@ -353,7 +353,7 @@ export default function TopicAssessmentClient({ topics }: Props) {
                         type="button"
                         key={choice}
                         className={`topic-choice-button ${selected === choice ? "selected" : ""}`}
-                        disabled={loading || (choice !== "unknown" && !canTest)}
+                        disabled={loading}
                         aria-pressed={selected === choice}
                         onClick={() => {
                           setSelections((current) => {
@@ -375,6 +375,27 @@ export default function TopicAssessmentClient({ topics }: Props) {
           </div>
         </section>
       ))}
+
+      {unavailableTopics.length > 0 && (
+        <section className="panel p-5">
+          <h2 className="font-semibold">Topics not available for assessment yet</h2>
+          <p className="stat-note mt-1">
+            These active roadmap topics remain visible for planning, but are not
+            selectable until at least two valid mapped questions are published.
+          </p>
+          <div className="mt-4 space-y-2">
+            {unavailableTopics.map((topic) => (
+              <div className="topic-choice-row opacity-70" key={topic.id}>
+                <div>
+                  <p className="font-semibold">{topic.title}</p>
+                  <p className="stat-note">{topic.moduleTitle}</p>
+                </div>
+                <span className="text-xs text-amber-700">Questions missing</span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {testedTopicsCount > 6 && <p className="quiz-validation" role="alert">You selected more than 6 topics to test. Keep this session to 6 topics (12 questions) and assess the rest in a later session.</p>}
       {error && <p className="quiz-validation" role="alert">{error}</p>}
