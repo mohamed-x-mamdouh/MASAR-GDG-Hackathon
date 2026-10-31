@@ -68,7 +68,7 @@ function getOptionalNonNegativeInteger(formData: FormData, key: string) {
 
   const value = Number(raw);
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error(`${key} must be zero or a positive integer, or left empty.`);
+    throw new Error(`${key} must be zero or a positive integer.`);
   }
   return value;
 }
@@ -165,13 +165,24 @@ async function requireTopicInDraft(
 ) {
   const { data: topic, error } = await admin
     .from("roadmap_topics")
-    .select("id, roadmap_version_id, title, is_active")
+    .select("id, roadmap_version_id, roadmap_module_id, title, is_active")
     .eq("id", topicId)
     .eq("roadmap_version_id", versionId)
     .maybeSingle();
 
   if (error || !topic) throw new Error("Topic not found in this draft version.");
   if (!topic.is_active) throw new Error("This topic is archived and cannot be changed.");
+
+  const { data: module, error: moduleError } = await admin
+    .from("roadmap_modules")
+    .select("id, is_active")
+    .eq("id", topic.roadmap_module_id)
+    .eq("roadmap_version_id", versionId)
+    .maybeSingle();
+
+  if (moduleError || !module) throw new Error("The topic's module was not found in this draft version.");
+  if (!module.is_active) throw new Error("The parent module is archived and cannot be changed.");
+
   return topic;
 }
 
@@ -330,14 +341,17 @@ export async function archiveLessonAction(formData: FormData) {
     await requireTopicInDraft(admin, topicId, versionId);
     await requireLessonInDraft(admin, lessonId, topicId, versionId);
 
-    const { error } = await admin.rpc("archive_roadmap_lesson_with_resources", {
+    const { error } = await admin.rpc("archive_roadmap_lesson", {
       p_version_id: versionId,
       p_topic_id: topicId,
       p_lesson_id: lessonId,
     });
 
     if (error) {
-      throw new Error(getFriendlyDatabaseError(error, "Couldn't archive the lesson and its resources."));
+      console.error("Failed to archive lesson and its resources atomically:", error);
+      throw new Error(
+        error.message || getFriendlyDatabaseError(error, "Couldn't archive the lesson."),
+      );
     }
   }, "Lesson archived successfully.");
 }
