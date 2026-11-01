@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { Compass } from "lucide-react";
 import "./globals.css";
+import "./globals.css";
+import "./masarak-ui.css";
 
 import { LearningProgressProvider } from "@/components/learning-progress-provider";
 import SiteHeader from "@/components/site-header";
