@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { Compass } from "lucide-react";
-import "./globals.css";
+// import { Compass } from "lucide-react";
+import Image from 'next/image'
+import logo from '../public/masarak-logo-transparent.png';
 import "./globals.css";
 import "./masarak-ui.css";
 
@@ -50,7 +51,7 @@ export default function RootLayout({
           <div className="footer-inner">
             <Link href="/" className="brand footer-brand">
               <span className="brand-mark">
-                <Compass size={19} />
+                <Image src={logo} alt="logo"></Image>
               </span>
               <span>
                 Masarak<span className="brand-period">.</span>

@@ -1507,3 +1507,79 @@ a:focus-visible {
     width: 100%;
   }
 }
+
+
+/* =========================================
+   ERROR & NOT FOUND PAGES
+========================================= */
+
+.mas-state-page {
+  display: grid;
+  place-items: center;
+  min-height: 62vh;
+}
+
+.mas-state-card {
+  width: min(100%, 520px);
+  margin-inline: auto;
+  padding: 44px 34px;
+  text-align: center;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.mas-state-card h1 {
+  margin: 0;
+  color: #173b43;
+  font-size: clamp(22px, 4vw, 26px);
+  font-weight: 800;
+  line-height: 1.5;
+}
+
+.mas-state-card p {
+  margin: 0;
+  max-width: 42ch;
+  color: #71817e;
+  line-height: 1.9;
+}
+
+.mas-state-code {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #fff3df;
+  color: #a8792e;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.mas-state-card .dashboard-actions {
+  justify-content: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.mas-state-reference {
+  margin-top: 10px !important;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .mas-state-card {
+    padding: 30px 20px;
+  }
+
+  .mas-state-card .dashboard-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .mas-state-card .dashboard-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}

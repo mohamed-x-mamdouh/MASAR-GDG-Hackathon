@@ -2214,17 +2214,21 @@ a:focus-visible {
 }
 
 @media (max-width: 640px) {
-
   .dashboard-actions {
-
     width: 100%;
+  }
 
+  .dashboard-actions .hero-actions {
+    width: 100%;
+  }
+
+  .dashboard-actions .hero-actions > * {
+    width: 100%;
+    justify-content: center;
   }
 
   .dashboard-actions > a {
-
     justify-content: center;
-
   }
 
 }
@@ -2604,11 +2608,6 @@ html {
 }
 
 body {
-
-  direction: rtl;
-
-  text-align: right;
-
   background: var(--background);
 
   color: var(--foreground);
@@ -3310,6 +3309,9 @@ button {
   color: var(--m-primary);
 
   background: var(--m-bg);
+
+  direction: rtl;
+  text-align: right;
 
   overflow: hidden;
 
